@@ -419,14 +419,14 @@ DELETE /admin/doctors/:id
 
 ### Tarefas
 
-- [ ] Criar módulo `doctors`.
-- [ ] Criar listagem paginada.
-- [ ] Criar filtro por especialidade.
-- [ ] Criar busca por nome.
-- [ ] Criar detalhe do médico.
-- [ ] Criar CRUD administrativo.
-- [ ] Relacionar médico com especialidade e clínica.
-- [ ] Proteger rotas admin.
+- [x] Criar módulo `doctors`.
+- [x] Criar listagem paginada.
+- [x] Criar filtro por especialidade.
+- [x] Criar busca por nome.
+- [x] Criar detalhe do médico.
+- [x] Criar CRUD administrativo.
+- [x] Relacionar médico com especialidade e clínica.
+- [x] Proteger rotas admin.
 
 ### Critérios de aceite
 
