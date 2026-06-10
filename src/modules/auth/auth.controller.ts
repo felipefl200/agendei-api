@@ -2,19 +2,15 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { AppError } from '../../shared/errors/app-error.js'
 
+import { authService } from './auth.container.js'
 import { loginSchema, registerPatientSchema } from './auth.schemas.js'
-import {
-  getAuthenticatedUser,
-  login,
-  registerPatient,
-} from './auth.service.js'
 
 export async function registerPatientController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
   const input = registerPatientSchema.parse(request.body)
-  const response = await registerPatient(input)
+  const response = await authService.registerPatient(input)
 
   return reply.code(201).send(response)
 }
@@ -22,7 +18,7 @@ export async function registerPatientController(
 export async function loginController(request: FastifyRequest) {
   const input = loginSchema.parse(request.body)
 
-  return login(input)
+  return await authService.login(input)
 }
 
 export async function meController(request: FastifyRequest) {
@@ -31,6 +27,6 @@ export async function meController(request: FastifyRequest) {
   }
 
   return {
-    user: await getAuthenticatedUser(request.user.id),
+    user: await authService.getAuthenticatedUser(request.user.id),
   }
 }

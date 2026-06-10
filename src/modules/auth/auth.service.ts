@@ -1,154 +1,139 @@
-import { eq } from 'drizzle-orm'
-import jwt, { type SignOptions } from 'jsonwebtoken'
-
-import { env } from '../../config/env.js'
-import { db } from '../../shared/database/index.js'
-import { patients, users } from '../../shared/database/schema/index.js'
 import { AppError } from '../../shared/errors/app-error.js'
 
+import type {
+  AuthPatient,
+  AuthTransactionManager,
+  AuthUser,
+  AuthUsersRepository,
+  Clock,
+  IdGenerator,
+  PasswordHasher,
+  SafeAuthUser,
+  TokenProvider,
+} from './auth.ports.js'
 import type { LoginInput, RegisterPatientInput } from './auth.schemas.js'
-import type { JwtPayload } from './auth.types.js'
-import { hashPassword, verifyPassword } from './password.js'
 
-const jwtExpiresIn = env.JWT_EXPIRES_IN as NonNullable<
-  SignOptions['expiresIn']
->
-
-const jwtOptions: SignOptions = {
-  expiresIn: jwtExpiresIn,
+type AuthServiceDeps = {
+  usersRepository: AuthUsersRepository
+  transactionManager: AuthTransactionManager
+  passwordHasher: PasswordHasher
+  tokenProvider: TokenProvider
+  idGenerator: IdGenerator
+  clock: Clock
 }
 
-type User = typeof users.$inferSelect
-type Patient = typeof patients.$inferSelect
-
-type SafeUser = Omit<User, 'passwordHash'>
-
 type AuthResponse = {
-  user: SafeUser
+  user: SafeAuthUser
   token: string
 }
 
 type RegisterPatientResponse = AuthResponse & {
-  patient: Patient
+  patient: AuthPatient
 }
 
-function sanitizeUser({ passwordHash: _passwordHash, ...user }: User): SafeUser {
+function sanitizeUser({
+  passwordHash: _passwordHash,
+  ...user
+}: AuthUser): SafeAuthUser {
   return user
 }
 
-function generateToken(user: Pick<User, 'id' | 'role'>): string {
-  const payload: JwtPayload = {
-    sub: user.id,
-    role: user.role,
-  }
+export function createAuthService(deps: AuthServiceDeps) {
+  async function registerPatient(
+    input: RegisterPatientInput,
+  ): Promise<RegisterPatientResponse> {
+    const existingUser = await deps.usersRepository.findByEmail(input.email)
 
-  return jwt.sign(payload, env.JWT_SECRET, jwtOptions)
-}
-
-async function findUserByEmail(email: string): Promise<User | null> {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1)
-
-  return user ?? null
-}
-
-async function findUserById(id: string): Promise<User | null> {
-  const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
-
-  return user ?? null
-}
-
-export async function registerPatient(
-  input: RegisterPatientInput,
-): Promise<RegisterPatientResponse> {
-  const existingUser = await findUserByEmail(input.email)
-
-  if (existingUser) {
-    throw new AppError('E-mail already registered', 409)
-  }
-
-  const userId = crypto.randomUUID()
-  const patientId = crypto.randomUUID()
-  const passwordHash = await hashPassword(input.password)
-
-  const [createdUser, createdPatient] = await db.transaction(async (tx) => {
-    await tx.insert(users).values({
-      id: userId,
-      name: input.name,
-      email: input.email,
-      passwordHash,
-      role: 'patient',
-    })
-
-    await tx.insert(patients).values({
-      id: patientId,
-      userId,
-      phone: input.phone,
-      birthDate: input.birthDate,
-      document: input.document,
-    })
-
-    const [user] = await tx.select().from(users).where(eq(users.id, userId))
-
-    const [patient] = await tx
-      .select()
-      .from(patients)
-      .where(eq(patients.id, patientId))
-
-    if (!user || !patient) {
-      throw new AppError('Could not create patient account', 500)
+    if (existingUser) {
+      throw new AppError('E-mail already registered', 409)
     }
 
-    return [user, patient]
-  })
+    const userId = deps.idGenerator.randomUUID()
+    const patientId = deps.idGenerator.randomUUID()
+    const passwordHash = await deps.passwordHasher.hash(input.password)
+
+    const { createdUser, createdPatient } = await deps.transactionManager.run(
+      async (tx) => {
+        const createdUser = await tx.users.create({
+          id: userId,
+          name: input.name,
+          email: input.email,
+          passwordHash,
+          role: 'patient',
+        })
+
+        const createdPatient = await tx.patients.create({
+          id: patientId,
+          userId,
+          phone: input.phone,
+          birthDate: input.birthDate,
+          document: input.document,
+        })
+
+        return { createdUser, createdPatient }
+      },
+    )
+
+    return {
+      user: sanitizeUser(createdUser),
+      patient: createdPatient,
+      token: deps.tokenProvider.sign({
+        sub: createdUser.id,
+        role: createdUser.role,
+      }),
+    }
+  }
+
+  async function login(input: LoginInput): Promise<AuthResponse> {
+    const user = await deps.usersRepository.findByEmail(input.email)
+
+    if (!user) {
+      throw new AppError('Invalid credentials', 401)
+    }
+
+    const passwordMatches = await deps.passwordHasher.verify(
+      user.passwordHash,
+      input.password,
+    )
+
+    if (!passwordMatches) {
+      throw new AppError('Invalid credentials', 401)
+    }
+
+    if (!user.active) {
+      throw new AppError('User is inactive', 401)
+    }
+
+    const lastLoginAt = deps.clock.now()
+    const updatedUser = await deps.usersRepository.updateLastLoginAt(
+      user.id,
+      lastLoginAt,
+    )
+
+    return {
+      user: sanitizeUser(updatedUser),
+      token: deps.tokenProvider.sign({
+        sub: user.id,
+        role: user.role,
+      }),
+    }
+  }
+
+  async function getAuthenticatedUser(id: string): Promise<SafeAuthUser> {
+    const user = await deps.usersRepository.findById(id)
+
+    if (!user || !user.active) {
+      throw new AppError('Invalid token', 401)
+    }
+
+    return sanitizeUser(user)
+  }
 
   return {
-    user: sanitizeUser(createdUser),
-    patient: createdPatient,
-    token: generateToken(createdUser),
+    getAuthenticatedUser,
+    login,
+    registerPatient,
   }
 }
 
-export async function login(input: LoginInput): Promise<AuthResponse> {
-  const user = await findUserByEmail(input.email)
-
-  if (!user) {
-    throw new AppError('Invalid credentials', 401)
-  }
-
-  const passwordMatches = await verifyPassword(user.passwordHash, input.password)
-
-  if (!passwordMatches) {
-    throw new AppError('Invalid credentials', 401)
-  }
-
-  if (!user.active) {
-    throw new AppError('User is inactive', 401)
-  }
-
-  await db
-    .update(users)
-    .set({ lastLoginAt: new Date() })
-    .where(eq(users.id, user.id))
-
-  return {
-    user: sanitizeUser({
-      ...user,
-      lastLoginAt: new Date(),
-    }),
-    token: generateToken(user),
-  }
-}
-
-export async function getAuthenticatedUser(id: string): Promise<SafeUser> {
-  const user = await findUserById(id)
-
-  if (!user || !user.active) {
-    throw new AppError('Invalid token', 401)
-  }
-
-  return sanitizeUser(user)
-}
+export type AuthService = ReturnType<typeof createAuthService>

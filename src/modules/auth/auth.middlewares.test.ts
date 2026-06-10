@@ -1,20 +1,45 @@
 import fastify from 'fastify'
-import jwt from 'jsonwebtoken'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { authenticate, authorize } from './auth.middlewares.js'
+import { AppError } from '../../shared/errors/app-error.js'
+
+import type { TokenProvider } from './auth.ports.js'
+import { authorize, createAuthenticateMiddleware } from './auth.middlewares.js'
+
+function createTokenProvider(
+  role: 'patient' | 'doctor' = 'patient',
+): TokenProvider {
+  return {
+    sign: vi.fn(),
+    verify: vi.fn(() => ({
+      sub: 'user-id',
+      role,
+    })),
+  }
+}
+
+function createInvalidTokenProvider(): TokenProvider {
+  return {
+    sign: vi.fn(),
+    verify: vi.fn(() => {
+      throw new AppError('Invalid token', 401)
+    }),
+  }
+}
 
 describe('auth middlewares', () => {
   it('authenticates valid bearer tokens and exposes the user', async () => {
     const app = fastify()
-    const token = jwt.sign(
-      { sub: 'user-id', role: 'patient' },
-      process.env.JWT_SECRET!,
-    )
+    const token = 'valid-token'
+    const tokenProvider = createTokenProvider()
 
-    app.get('/protected', { preHandler: [authenticate] }, (request) => {
-      return { user: request.user }
-    })
+    app.get(
+      '/protected',
+      { preHandler: [createAuthenticateMiddleware(tokenProvider)] },
+      (request) => {
+        return { user: request.user }
+      },
+    )
 
     const response = await app.inject({
       method: 'GET',
@@ -25,6 +50,7 @@ describe('auth middlewares', () => {
     await app.close()
 
     expect(response.statusCode).toBe(200)
+    expect(tokenProvider.verify).toHaveBeenCalledWith(token)
     expect(response.json()).toEqual({
       user: {
         id: 'user-id',
@@ -35,10 +61,15 @@ describe('auth middlewares', () => {
 
   it('rejects invalid tokens with 401', async () => {
     const app = fastify()
+    const tokenProvider = createInvalidTokenProvider()
 
-    app.get('/protected', { preHandler: [authenticate] }, () => {
-      return { ok: true }
-    })
+    app.get(
+      '/protected',
+      { preHandler: [createAuthenticateMiddleware(tokenProvider)] },
+      () => {
+        return { ok: true }
+      },
+    )
 
     const response = await app.inject({
       method: 'GET',
@@ -53,14 +84,17 @@ describe('auth middlewares', () => {
 
   it('authorizes allowed roles', async () => {
     const app = fastify()
-    const token = jwt.sign(
-      { sub: 'user-id', role: 'patient' },
-      process.env.JWT_SECRET!,
-    )
+    const token = 'valid-token'
+    const tokenProvider = createTokenProvider('patient')
 
     app.get(
       '/patients-only',
-      { preHandler: [authenticate, authorize(['patient'])] },
+      {
+        preHandler: [
+          createAuthenticateMiddleware(tokenProvider),
+          authorize(['patient']),
+        ],
+      },
       () => {
         return { ok: true }
       },
@@ -79,14 +113,17 @@ describe('auth middlewares', () => {
 
   it('rejects forbidden roles with 403', async () => {
     const app = fastify()
-    const token = jwt.sign(
-      { sub: 'user-id', role: 'doctor' },
-      process.env.JWT_SECRET!,
-    )
+    const token = 'valid-token'
+    const tokenProvider = createTokenProvider('doctor')
 
     app.get(
       '/patients-only',
-      { preHandler: [authenticate, authorize(['patient'])] },
+      {
+        preHandler: [
+          createAuthenticateMiddleware(tokenProvider),
+          authorize(['patient']),
+        ],
+      },
       () => {
         return { ok: true }
       },

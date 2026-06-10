@@ -3,25 +3,17 @@ import type {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from 'fastify'
-import jwt from 'jsonwebtoken'
 
-import { env } from '../../config/env.js'
 import { AppError } from '../../shared/errors/app-error.js'
 
-import type { JwtPayload, UserRole } from './auth.types.js'
+import type { TokenProvider } from './auth.ports.js'
+import type { UserRole } from './auth.types.js'
+import { jwtTokenProvider } from './token-provider.js'
 
-function isJwtPayload(payload: unknown): payload is JwtPayload {
-  return (
-    typeof payload === 'object' &&
-    payload !== null &&
-    typeof (payload as JwtPayload).sub === 'string' &&
-    ['patient', 'doctor', 'admin', 'super_admin'].includes(
-      (payload as JwtPayload).role,
-    )
-  )
-}
-
-function authenticateRequest(request: FastifyRequest) {
+function authenticateRequest(
+  request: FastifyRequest,
+  tokenProvider: TokenProvider,
+) {
   const authorization = request.headers.authorization
 
   if (!authorization) {
@@ -35,11 +27,7 @@ function authenticateRequest(request: FastifyRequest) {
   }
 
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET)
-
-    if (!isJwtPayload(payload)) {
-      throw new AppError('Invalid token', 401)
-    }
+    const payload = tokenProvider.verify(token)
 
     request.user = {
       id: payload.sub,
@@ -54,18 +42,22 @@ function authenticateRequest(request: FastifyRequest) {
   }
 }
 
-export function authenticate(
-  request: FastifyRequest,
-  _reply: FastifyReply,
-  done: HookHandlerDoneFunction,
-) {
-  try {
-    authenticateRequest(request)
-    done()
-  } catch (error) {
-    done(error as Error)
+export function createAuthenticateMiddleware(tokenProvider: TokenProvider) {
+  return function authenticate(
+    request: FastifyRequest,
+    _reply: FastifyReply,
+    done: HookHandlerDoneFunction,
+  ) {
+    try {
+      authenticateRequest(request, tokenProvider)
+      done()
+    } catch (error) {
+      done(error as Error)
+    }
   }
 }
+
+export const authenticate = createAuthenticateMiddleware(jwtTokenProvider)
 
 export function authorize(allowedRoles: UserRole[]) {
   return function authorizeMiddleware(

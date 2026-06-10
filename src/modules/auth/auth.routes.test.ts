@@ -5,13 +5,15 @@ import { AppError } from '../../shared/errors/app-error.js'
 
 import type { UserRole } from './auth.types.js'
 
-vi.mock(import('./auth.service.js'), () => ({
-  getAuthenticatedUser: vi.fn(),
-  login: vi.fn(),
-  registerPatient: vi.fn(),
+vi.mock(import('./auth.container.js'), () => ({
+  authService: {
+    getAuthenticatedUser: vi.fn(),
+    login: vi.fn(),
+    registerPatient: vi.fn(),
+  },
 }))
 
-const authService = await import('./auth.service.js')
+const { authService } = await import('./auth.container.js')
 const { buildApp } = await import('../../app.js')
 
 const now = new Date('2026-06-10T12:00:00.000Z')
