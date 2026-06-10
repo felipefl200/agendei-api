@@ -266,9 +266,9 @@ Popular o banco com especialidades médicas iniciais.
 
 ### Tarefas
 
-- [ ] Criar arquivo de seed.
-- [ ] Configurar script `db:seed`.
-- [ ] Garantir que seed possa rodar mais de uma vez sem duplicar dados.
+- [x] Criar arquivo de seed.
+- [x] Configurar script `db:seed`.
+- [x] Garantir que seed possa rodar mais de uma vez sem duplicar dados.
 
 ### Critérios de aceite
 

@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint",
     "db:generate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs generate",
-    "db:push": "node --env-file=.env node_modules/drizzle-kit/bin.cjs push"
+    "db:push": "node --env-file=.env node_modules/drizzle-kit/bin.cjs push",
+    "db:seed": "node --env-file=.env --import tsx src/shared/database/seed.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@faker-js/faker": "^10.4.0",
     "@types/node": "^24.13.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.4.1",
