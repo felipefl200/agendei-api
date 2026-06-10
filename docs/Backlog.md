@@ -332,11 +332,11 @@ PATCH /patients/me
 
 ### Tarefas
 
-- [ ] Criar módulo `patients`.
-- [ ] Criar busca por usuário autenticado.
-- [ ] Criar atualização de nome e telefone.
-- [ ] Validar dados com Zod.
-- [ ] Proteger rotas com perfil `patient`.
+- [x] Criar módulo `patients`.
+- [x] Criar busca por usuário autenticado.
+- [x] Criar atualização de nome e telefone.
+- [x] Validar dados com Zod.
+- [x] Proteger rotas com perfil `patient`.
 
 ### Critérios de aceite
 
