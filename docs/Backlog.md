@@ -463,12 +463,12 @@ DELETE /admin/availability/:id
 
 ### Tarefas
 
-- [ ] Criar módulo `availability`.
-- [ ] Criar regras semanais de atendimento.
-- [ ] Criar cálculo de slots por data.
-- [ ] Excluir slots já ocupados.
-- [ ] Considerar duração da consulta.
-- [ ] Proteger gestão de disponibilidade com admin.
+- [x] Criar módulo `availability`.
+- [x] Criar regras semanais de atendimento.
+- [x] Criar cálculo de slots por data.
+- [x] Excluir slots já ocupados.
+- [x] Considerar duração da consulta.
+- [x] Proteger gestão de disponibilidade com admin.
 
 ### Critérios de aceite
 
