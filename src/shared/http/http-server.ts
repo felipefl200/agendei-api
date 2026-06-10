@@ -1,5 +1,6 @@
 import type { FastifyError, FastifyInstance } from 'fastify'
 import fastify from 'fastify'
+import { ZodError } from 'zod'
 
 import { AppError } from '../errors/app-error.js'
 import { logger } from '../logger/logger.js'
@@ -23,6 +24,15 @@ export function createHttpServer(): FastifyInstance {
         statusCode: 400,
         error: 'Bad Request',
         message: error.message,
+      })
+    }
+
+    if (error instanceof ZodError) {
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: 'Validation error',
+        issues: error.issues,
       })
     }
 

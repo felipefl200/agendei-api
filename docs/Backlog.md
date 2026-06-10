@@ -296,14 +296,14 @@ GET /auth/me
 
 ### Tarefas
 
-- [ ] Criar módulo `auth`.
-- [ ] Criar schemas com Zod v4.
-- [ ] Criar cadastro de paciente.
-- [ ] Criar login com e-mail e senha.
-- [ ] Gerar JWT.
-- [ ] Criar middleware `authenticate`.
-- [ ] Criar middleware `authorize`.
-- [ ] Criar retorno seguro sem `passwordHash`.
+- [x] Criar módulo `auth`.
+- [x] Criar schemas com Zod v4.
+- [x] Criar cadastro de paciente.
+- [x] Criar login com e-mail e senha.
+- [x] Gerar JWT.
+- [x] Criar middleware `authenticate`.
+- [x] Criar middleware `authorize`.
+- [x] Criar retorno seguro sem `passwordHash`.
 
 ### Critérios de aceite
 
