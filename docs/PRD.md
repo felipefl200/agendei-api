@@ -1026,7 +1026,7 @@ Sugestão principal:
 - Node.js
 - TypeScript
 - Fastify ou NestJS
-- Prisma ORM
+- Drizzle ORM
 - PostgreSQL
 - JWT
 - Zod para validação
@@ -1037,7 +1037,7 @@ Sugestão alternativa mais simples:
 - Node.js
 - TypeScript
 - Express
-- Prisma ORM
+- Drizzle ORM
 - PostgreSQL
 - JWT
 - Zod

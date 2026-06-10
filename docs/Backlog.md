@@ -116,7 +116,7 @@ Criar ambiente local de banco de dados usando Docker.
 
 - `docker compose up -d` deve subir o MySQL.
 - O banco deve aceitar conexão local.
-- O Prisma deve conseguir conectar usando `DATABASE_URL`.
+- O Drizzle deve conseguir conectar usando `DATABASE_URL`.
 
 ### Exemplo de serviço
 
@@ -142,36 +142,41 @@ volumes:
 
 ---
 
-# Epic 2 — Banco de dados e Prisma
+# Epic 2 — Banco de dados e Drizzle
 
-## 4. Configurar Prisma
+## 4. Configurar Drizzle
 
 ### Descrição
 
-Adicionar Prisma ORM ao projeto.
+Adicionar Drizzle ORM ao projeto.
 
 ### Tarefas
 
-- Instalar Prisma e Prisma Client.
-- Executar `npx prisma init`.
-- Configurar provider MySQL.
+- Instalar Drizzle ORM e drizzle-kit.
+- Configurar `drizzle.config.ts`.
+- Configurar driver do MySQL (ex: mysql2).
 - Configurar `DATABASE_URL`.
-- Criar client Prisma compartilhado.
-- Criar script para Prisma Studio.
+- Criar client Drizzle compartilhado.
+- Criar script para Drizzle Studio.
 
 ### Critérios de aceite
 
-- `npx prisma validate` deve executar sem erros.
-- `npx prisma studio` deve abrir corretamente.
-- A conexão com MySQL deve funcionar.
+- A conexão com MySQL deve funcionar via Drizzle.
+- `npx drizzle-kit studio` deve abrir corretamente.
 
-### Provider esperado
+### Configuração esperada
 
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
+```ts
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  schema: './src/db/schema.ts',
+  out: './drizzle',
+  dialect: 'mysql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+});
 ```
 
 ---
@@ -238,9 +243,9 @@ Gerar e aplicar a migration inicial do banco.
 
 ### Critérios de aceite
 
-- `npx prisma migrate dev` deve executar com sucesso.
+- A geração da migration (`npx drizzle-kit generate`) deve executar com sucesso.
+- A aplicação da migration no banco deve ocorrer com sucesso.
 - As tabelas devem aparecer no banco.
-- O Prisma Client deve ser gerado.
 
 ---
 

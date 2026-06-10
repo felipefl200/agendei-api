@@ -17,7 +17,7 @@ A API será construída com:
 ```txt
 Node.js + TypeScript
 Fastify
-Prisma ORM
+Drizzle ORM
 MySQL
 JWT
 Zod v4
@@ -56,14 +56,14 @@ Motivo:
 ### ORM
 
 ```txt
-Prisma ORM
+Drizzle ORM
 ```
 
 Motivo:
 
-- Migrations organizadas.
-- Tipagem gerada automaticamente.
-- Boa produtividade com TypeScript.
+- Migrations organizadas com drizzle-kit.
+- Tipagem gerada automaticamente pelo schema.
+- Boa produtividade com TypeScript e query builder similar ao SQL.
 - Facilita manutenção do schema.
 
 ### Banco de dados
@@ -77,7 +77,7 @@ Motivo:
 - O servidor atual já utiliza MySQL.
 - Reduz risco operacional no deploy.
 - Evita mudança de infraestrutura neste momento.
-- Prisma possui suporte adequado para MySQL.
+- Drizzle possui excelente suporte para MySQL (mysql2).
 
 ### Autenticação
 
@@ -201,7 +201,7 @@ Responsáveis por:
 Responsáveis por:
 
 - Acesso ao banco de dados.
-- Consultas com Prisma.
+- Consultas com Drizzle.
 - Persistência.
 - Isolamento da camada de dados.
 
@@ -288,6 +288,6 @@ A criação do agendamento deve ser feita em transação para reduzir risco de c
 
 ## Decisão final
 
-A API Agendei será implementada com arquitetura modular usando Fastify, TypeScript, Prisma, MySQL, JWT, Zod v4 e Docker para desenvolvimento.
+A API Agendei será implementada com arquitetura modular usando Fastify, TypeScript, Drizzle, MySQL, JWT, Zod v4 e Docker para desenvolvimento.
 
 Essa decisão será revisitada se o projeto exigir multi-clínicas avançado, alta concorrência em agendamentos ou integrações externas complexas.
