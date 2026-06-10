@@ -15,15 +15,20 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write .",
-    "check": "npm run typecheck && npm run lint"
+    "check": "npm run typecheck && npm run lint",
+    "db:generate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs generate",
+    "db:push": "node --env-file=.env node_modules/drizzle-kit/bin.cjs push"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
+    "mysql2": "^3.22.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.1",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^13.0.0",
