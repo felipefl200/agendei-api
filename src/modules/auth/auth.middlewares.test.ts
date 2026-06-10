@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../shared/errors/app-error.js'
 
-import type { TokenProvider } from './auth.ports.js'
 import { authorize, createAuthenticateMiddleware } from './auth.middlewares.js'
+import type { TokenProvider } from './auth.ports.js'
 
 function createTokenProvider(
   role: 'patient' | 'doctor' = 'patient',
@@ -50,6 +50,7 @@ describe('auth middlewares', () => {
     await app.close()
 
     expect(response.statusCode).toBe(200)
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tokenProvider.verify).toHaveBeenCalledWith(token)
     expect(response.json()).toEqual({
       user: {

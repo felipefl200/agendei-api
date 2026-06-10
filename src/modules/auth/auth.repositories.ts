@@ -54,10 +54,7 @@ export class DrizzleAuthUsersRepository implements AuthUsersRepository {
   }
 
   async updateLastLoginAt(id: string, lastLoginAt: Date): Promise<AuthUser> {
-    await this.client
-      .update(users)
-      .set({ lastLoginAt })
-      .where(eq(users.id, id))
+    await this.client.update(users).set({ lastLoginAt }).where(eq(users.id, id))
 
     const user = await this.findById(id)
 
@@ -90,7 +87,9 @@ export class DrizzleAuthPatientsRepository implements AuthPatientsRepository {
 }
 
 export class DrizzleAuthTransactionManager implements AuthTransactionManager {
-  run<T>(callback: (context: AuthTransactionContext) => Promise<T>): Promise<T> {
+  run<T>(
+    callback: (context: AuthTransactionContext) => Promise<T>,
+  ): Promise<T> {
     return db.transaction((tx) =>
       callback({
         users: new DrizzleAuthUsersRepository(tx),

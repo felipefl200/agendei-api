@@ -6,9 +6,7 @@ import { AppError } from '../../shared/errors/app-error.js'
 import type { TokenProvider } from './auth.ports.js'
 import type { JwtPayload } from './auth.types.js'
 
-const jwtExpiresIn = env.JWT_EXPIRES_IN as NonNullable<
-  SignOptions['expiresIn']
->
+const jwtExpiresIn = env.JWT_EXPIRES_IN as NonNullable<SignOptions['expiresIn']>
 
 const jwtOptions: SignOptions = {
   expiresIn: jwtExpiresIn,

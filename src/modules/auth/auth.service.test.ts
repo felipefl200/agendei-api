@@ -19,18 +19,18 @@ const fixedNow = new Date('2026-06-10T12:00:00.000Z')
 class InMemoryUsersRepository implements AuthUsersRepository {
   constructor(private readonly users: Map<string, AuthUser>) {}
 
-  async findByEmail(email: string): Promise<AuthUser | null> {
-    return (
+  findByEmail(email: string): Promise<AuthUser | null> {
+    return Promise.resolve(
       Array.from(this.users.values()).find((user) => user.email === email) ??
       null
     )
   }
 
-  async findById(id: string): Promise<AuthUser | null> {
-    return this.users.get(id) ?? null
+  findById(id: string): Promise<AuthUser | null> {
+    return Promise.resolve(this.users.get(id) ?? null)
   }
 
-  async create(input: Parameters<AuthUsersRepository['create']>[0]) {
+  create(input: Parameters<AuthUsersRepository['create']>[0]): Promise<AuthUser> {
     const user: AuthUser = {
       ...input,
       active: true,
@@ -41,14 +41,14 @@ class InMemoryUsersRepository implements AuthUsersRepository {
 
     this.users.set(user.id, user)
 
-    return user
+    return Promise.resolve(user)
   }
 
-  async updateLastLoginAt(id: string, lastLoginAt: Date) {
+  updateLastLoginAt(id: string, lastLoginAt: Date): Promise<AuthUser> {
     const user = this.users.get(id)
 
     if (!user) {
-      throw new Error('User not found')
+      return Promise.reject(new Error('User not found'))
     }
 
     const updatedUser = {
@@ -59,7 +59,7 @@ class InMemoryUsersRepository implements AuthUsersRepository {
 
     this.users.set(id, updatedUser)
 
-    return updatedUser
+    return Promise.resolve(updatedUser)
   }
 }
 
@@ -69,9 +69,9 @@ class InMemoryPatientsRepository implements AuthPatientsRepository {
     private readonly shouldFail = false,
   ) {}
 
-  async create(input: Parameters<AuthPatientsRepository['create']>[0]) {
+  create(input: Parameters<AuthPatientsRepository['create']>[0]): Promise<AuthPatient> {
     if (this.shouldFail) {
-      throw new Error('Could not create patient')
+      return Promise.reject(new Error('Could not create patient'))
     }
 
     const patient: AuthPatient = {
@@ -86,7 +86,7 @@ class InMemoryPatientsRepository implements AuthPatientsRepository {
 
     this.patients.set(patient.id, patient)
 
-    return patient
+    return Promise.resolve(patient)
   }
 }
 
@@ -147,10 +147,12 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   }
 }
 
-function makeSut(options: {
-  users?: AuthUser[]
-  shouldFailPatientCreation?: boolean
-} = {}) {
+function makeSut(
+  options: {
+    users?: AuthUser[]
+    shouldFailPatientCreation?: boolean
+  } = {},
+) {
   const users = new Map<string, AuthUser>(
     options.users?.map((user) => [user.id, user] as const),
   )
@@ -162,13 +164,13 @@ function makeSut(options: {
     options.shouldFailPatientCreation,
   )
   const passwordHasher: PasswordHasher = {
-    hash: vi.fn(async (password) => `hashed:${password}`),
-    verify: vi.fn(async (passwordHash, password) => {
-      return passwordHash === `hashed:${password}`
+    hash: vi.fn((password) => Promise.resolve(`hashed:${password}`)),
+    verify: vi.fn((passwordHash, password) => {
+      return Promise.resolve(passwordHash === `hashed:${password}`)
     }),
   }
   const tokenProvider: TokenProvider = {
-    sign: vi.fn((payload) => `token:${payload.sub}:${payload.role}`),
+    sign: vi.fn((payload: { sub: string; role: string }) => `token:${payload.sub}:${payload.role}`),
     verify: vi.fn(),
   }
   const ids = ['new-user-id', 'new-patient-id']
@@ -217,6 +219,7 @@ describe('auth service', () => {
       userId: 'new-user-id',
       phone: '11999999999',
     })
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tokenProvider.sign).toHaveBeenCalledWith({
       sub: 'new-user-id',
       role: 'patient',
@@ -226,14 +229,10 @@ describe('auth service', () => {
   })
 
   it('rejects duplicated e-mails before hashing, transaction, and token generation', async () => {
-    const {
-      service,
-      transactionManager,
-      passwordHasher,
-      tokenProvider,
-    } = makeSut({
-      users: [makeUser()],
-    })
+    const { service, transactionManager, passwordHasher, tokenProvider } =
+      makeSut({
+        users: [makeUser()],
+      })
 
     await expect(
       service.registerPatient({
@@ -246,8 +245,10 @@ describe('auth service', () => {
       statusCode: 409,
     })
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(passwordHasher.hash).not.toHaveBeenCalled()
     expect(transactionManager.runSpy).not.toHaveBeenCalled()
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tokenProvider.sign).not.toHaveBeenCalled()
   })
 
@@ -324,8 +325,10 @@ describe('auth service', () => {
       password: 'strong-password-123',
     })
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(clock.now).toHaveBeenCalled()
     expect(users.get('existing-user-id')?.lastLoginAt).toEqual(fixedNow)
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tokenProvider.sign).toHaveBeenCalledWith({
       sub: 'existing-user-id',
       role: 'patient',

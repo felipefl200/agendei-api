@@ -5,11 +5,11 @@ import { patients, users } from '../../shared/database/schema/index.js'
 
 import type {
   Patient,
-  PatientUser,
   PatientsRepository,
   PatientsTransactionContext,
   PatientsTransactionManager,
   PatientsUsersRepository,
+  PatientUser,
 } from './patients.ports.js'
 
 type PatientsDatabase = typeof db
@@ -18,9 +18,7 @@ type PatientsTransaction = Parameters<
 >[0]
 type PatientsDatabaseClient = PatientsDatabase | PatientsTransaction
 
-export class DrizzlePatientsUsersRepository
-  implements PatientsUsersRepository
-{
+export class DrizzlePatientsUsersRepository implements PatientsUsersRepository {
   constructor(private readonly client: PatientsDatabaseClient) {}
 
   async findById(id: string): Promise<PatientUser | null> {
@@ -81,9 +79,7 @@ export class DrizzlePatientsRepository implements PatientsRepository {
   }
 }
 
-export class DrizzlePatientsTransactionManager
-  implements PatientsTransactionManager
-{
+export class DrizzlePatientsTransactionManager implements PatientsTransactionManager {
   run<T>(
     callback: (context: PatientsTransactionContext) => Promise<T>,
   ): Promise<T> {

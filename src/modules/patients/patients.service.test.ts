@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type {
   Patient,
-  PatientUser,
   PatientsRepository,
   PatientsTransactionContext,
   PatientsTransactionManager,
   PatientsUsersRepository,
+  PatientUser,
 } from './patients.ports.js'
 import { createPatientsService } from './patients.service.js'
 
@@ -15,15 +15,15 @@ const fixedNow = new Date('2026-06-10T12:00:00.000Z')
 class InMemoryPatientsUsersRepository implements PatientsUsersRepository {
   constructor(private readonly users: Map<string, PatientUser>) {}
 
-  async findById(id: string): Promise<PatientUser | null> {
-    return this.users.get(id) ?? null
+  findById(id: string): Promise<PatientUser | null> {
+    return Promise.resolve(this.users.get(id) ?? null)
   }
 
-  async updateName(id: string, name: string): Promise<PatientUser> {
+  updateName(id: string, name: string): Promise<PatientUser> {
     const user = this.users.get(id)
 
     if (!user) {
-      throw new Error('User not found')
+      return Promise.reject(new Error('User not found'))
     }
 
     const updatedUser = {
@@ -33,26 +33,26 @@ class InMemoryPatientsUsersRepository implements PatientsUsersRepository {
 
     this.users.set(id, updatedUser)
 
-    return updatedUser
+    return Promise.resolve(updatedUser)
   }
 }
 
 class InMemoryPatientsRepository implements PatientsRepository {
   constructor(private readonly patients: Map<string, Patient>) {}
 
-  async findByUserId(userId: string): Promise<Patient | null> {
-    return (
+  findByUserId(userId: string): Promise<Patient | null> {
+    return Promise.resolve(
       Array.from(this.patients.values()).find(
         (patient) => patient.userId === userId,
       ) ?? null
     )
   }
 
-  async updatePhone(id: string, phone: string | null): Promise<Patient> {
+  updatePhone(id: string, phone: string | null): Promise<Patient> {
     const patient = this.patients.get(id)
 
     if (!patient) {
-      throw new Error('Patient not found')
+      return Promise.reject(new Error('Patient not found'))
     }
 
     const updatedPatient = {
@@ -62,13 +62,11 @@ class InMemoryPatientsRepository implements PatientsRepository {
 
     this.patients.set(id, updatedPatient)
 
-    return updatedPatient
+    return Promise.resolve(updatedPatient)
   }
 }
 
-class InMemoryPatientsTransactionManager
-  implements PatientsTransactionManager
-{
+class InMemoryPatientsTransactionManager implements PatientsTransactionManager {
   public readonly runSpy = vi.fn()
 
   constructor(
@@ -112,10 +110,12 @@ function makePatient(overrides: Partial<Patient> = {}): Patient {
   }
 }
 
-function makeSut(options: {
-  users?: PatientUser[]
-  patients?: Patient[]
-} = {}) {
+function makeSut(
+  options: {
+    users?: PatientUser[]
+    patients?: Patient[]
+  } = {},
+) {
   const users = new Map<string, PatientUser>(
     options.users?.map((user) => [user.id, user] as const) ?? [
       ['user-id', makeUser()] as const,
@@ -232,24 +232,24 @@ describe('patients service', () => {
       patients: [makePatient()],
     })
 
-    await expect(missingUserSut.service.getMe('missing-user-id')).rejects.toMatchObject(
-      {
-        message: 'Invalid token',
-        statusCode: 401,
-      },
-    )
+    await expect(
+      missingUserSut.service.getMe('missing-user-id'),
+    ).rejects.toMatchObject({
+      message: 'Invalid token',
+      statusCode: 401,
+    })
 
     const inactiveUserSut = makeSut({
       users: [makeUser({ active: false })],
       patients: [makePatient()],
     })
 
-    await expect(inactiveUserSut.service.getMe('user-id')).rejects.toMatchObject(
-      {
-        message: 'Invalid token',
-        statusCode: 401,
-      },
-    )
+    await expect(
+      inactiveUserSut.service.getMe('user-id'),
+    ).rejects.toMatchObject({
+      message: 'Invalid token',
+      statusCode: 401,
+    })
   })
 
   it('rejects authenticated users without a patient profile', async () => {

@@ -13,31 +13,31 @@ const fixedNow = new Date('2026-06-10T12:00:00.000Z')
 class InMemorySpecialtiesRepository implements SpecialtiesRepository {
   constructor(private readonly specialties: Map<string, Specialty>) {}
 
-  async findActive(): Promise<Specialty[]> {
-    return Array.from(this.specialties.values())
+  findActive(): Promise<Specialty[]> {
+    return Promise.resolve(Array.from(this.specialties.values())
       .filter((specialty) => specialty.active)
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => a.name.localeCompare(b.name)))
   }
 
-  async findActiveById(id: string): Promise<Specialty | null> {
+  findActiveById(id: string): Promise<Specialty | null> {
     const specialty = this.specialties.get(id)
 
-    return specialty?.active ? specialty : null
+    return Promise.resolve(specialty?.active ? specialty : null)
   }
 
-  async findById(id: string): Promise<Specialty | null> {
-    return this.specialties.get(id) ?? null
+  findById(id: string): Promise<Specialty | null> {
+    return Promise.resolve(this.specialties.get(id) ?? null)
   }
 
-  async findByName(name: string): Promise<Specialty | null> {
-    return (
+  findByName(name: string): Promise<Specialty | null> {
+    return Promise.resolve(
       Array.from(this.specialties.values()).find(
         (specialty) => specialty.name === name,
       ) ?? null
     )
   }
 
-  async create(input: CreateSpecialtyInput): Promise<Specialty> {
+  create(input: CreateSpecialtyInput): Promise<Specialty> {
     const specialty: Specialty = {
       id: `specialty-${this.specialties.size + 1}`,
       name: input.name,
@@ -50,35 +50,35 @@ class InMemorySpecialtiesRepository implements SpecialtiesRepository {
 
     this.specialties.set(specialty.id, specialty)
 
-    return specialty
+    return Promise.resolve(specialty)
   }
 
-  async update(
-    id: string,
-    input: UpdateSpecialtyInput,
-  ): Promise<Specialty> {
+  update(id: string, input: UpdateSpecialtyInput): Promise<Specialty> {
     const specialty = this.specialties.get(id)
 
     if (!specialty) {
-      throw new Error('Specialty not found')
+      return Promise.reject(new Error('Specialty not found'))
     }
 
-    const updatedSpecialty = {
+    const updatedSpecialty: Specialty = {
       ...specialty,
       ...input,
+      name: input.name ?? specialty.name,
+      description: input.description !== undefined ? input.description : specialty.description,
+      icon: input.icon !== undefined ? input.icon : specialty.icon,
       updatedAt: fixedNow,
     }
 
     this.specialties.set(id, updatedSpecialty)
 
-    return updatedSpecialty
+    return Promise.resolve(updatedSpecialty)
   }
 
-  async deactivate(id: string): Promise<Specialty> {
+  deactivate(id: string): Promise<Specialty> {
     const specialty = this.specialties.get(id)
 
     if (!specialty) {
-      throw new Error('Specialty not found')
+      return Promise.reject(new Error('Specialty not found'))
     }
 
     const updatedSpecialty = {
@@ -89,7 +89,7 @@ class InMemorySpecialtiesRepository implements SpecialtiesRepository {
 
     this.specialties.set(id, updatedSpecialty)
 
-    return updatedSpecialty
+    return Promise.resolve(updatedSpecialty)
   }
 }
 

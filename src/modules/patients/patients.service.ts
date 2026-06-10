@@ -3,10 +3,10 @@ import { AppError } from '../../shared/errors/app-error.js'
 import type {
   Patient,
   PatientProfile,
-  PatientUser,
   PatientsRepository,
   PatientsTransactionManager,
   PatientsUsersRepository,
+  PatientUser,
 } from './patients.ports.js'
 import type { UpdatePatientProfileInput } from './patients.schemas.js'
 
@@ -16,10 +16,7 @@ type PatientsServiceDeps = {
   transactionManager: PatientsTransactionManager
 }
 
-function toPatientProfile(
-  user: PatientUser,
-  patient: Patient,
-): PatientProfile {
+function toPatientProfile(user: PatientUser, patient: Patient): PatientProfile {
   return {
     id: patient.id,
     name: user.name,

@@ -44,5 +44,7 @@ export type PatientsTransactionContext = {
 }
 
 export type PatientsTransactionManager = {
-  run<T>(callback: (context: PatientsTransactionContext) => Promise<T>): Promise<T>
+  run<T>(
+    callback: (context: PatientsTransactionContext) => Promise<T>,
+  ): Promise<T>
 }

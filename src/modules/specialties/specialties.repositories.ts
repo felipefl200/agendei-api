@@ -65,10 +65,7 @@ export class DrizzleSpecialtiesRepository implements SpecialtiesRepository {
     return specialty
   }
 
-  async update(
-    id: string,
-    input: UpdateSpecialtyInput,
-  ): Promise<Specialty> {
+  async update(id: string, input: UpdateSpecialtyInput): Promise<Specialty> {
     await db
       .update(specialties)
       .set({

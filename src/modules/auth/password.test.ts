@@ -7,9 +7,9 @@ describe('password hashing', () => {
     const passwordHash = await hashPassword('strong-password-123')
 
     expect(passwordHash).toMatch(/^\$argon2id\$/)
-    await expect(verifyPassword(passwordHash, 'strong-password-123')).resolves.toBe(
-      true,
-    )
+    await expect(
+      verifyPassword(passwordHash, 'strong-password-123'),
+    ).resolves.toBe(true)
   })
 
   it('rejects invalid passwords', async () => {
