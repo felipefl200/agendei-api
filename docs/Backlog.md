@@ -30,13 +30,13 @@ Criar a base inicial da API com Node.js e TypeScript.
 
 ### Tarefas
 
-- Criar projeto Node.
-- Configurar TypeScript.
-- Configurar `tsx` para execução em desenvolvimento.
-- Criar estrutura inicial de pastas.
-- Criar `src/server.ts`.
-- Criar `src/app.ts`.
-- Criar rota inicial de health check.
+- [x] Criar projeto Node.
+- [x] Configurar TypeScript.
+- [x] Configurar `tsx` para execução em desenvolvimento.
+- [x] Criar estrutura inicial de pastas.
+- [x] Criar `src/server.ts`.
+- [x] Criar `src/app.ts`.
+- [x] Criar rota inicial de health check.
 
 ### Critérios de aceite
 
@@ -66,14 +66,14 @@ Padronizar qualidade e formatação do código.
 
 ### Tarefas
 
-- Instalar ESLint.
-- Instalar Prettier.
-- Configurar sem ponto e vírgula.
-- Configurar aspas simples.
-- Criar `.prettierrc`.
-- Criar `eslint.config.js`.
-- Criar `.eslintignore` se necessário.
-- Adicionar scripts de lint e format.
+- [x] Instalar ESLint.
+- [x] Instalar Prettier.
+- [x] Configurar sem ponto e vírgula.
+- [x] Configurar aspas simples.
+- [x] Criar `.prettierrc`.
+- [x] Criar `eslint.config.js`.
+- [x] Criar `.eslintignore` se necessário.
+- [x] Adicionar scripts de lint e format.
 
 ### Critérios de aceite
 
@@ -105,12 +105,12 @@ Criar ambiente local de banco de dados usando Docker.
 
 ### Tarefas
 
-- Criar `docker-compose.yml`.
-- Configurar serviço MySQL.
-- Configurar usuário, senha e banco.
-- Configurar volume persistente.
-- Configurar porta local.
-- Criar `.env.example`.
+- [x] Criar `docker-compose.yml`.
+- [x] Configurar serviço MySQL.
+- [x] Configurar usuário, senha e banco.
+- [x] Configurar volume persistente.
+- [x] Configurar porta local.
+- [x] Criar `.env.example`.
 
 ### Critérios de aceite
 
@@ -152,12 +152,12 @@ Adicionar Drizzle ORM ao projeto.
 
 ### Tarefas
 
-- Instalar Drizzle ORM e drizzle-kit.
-- Configurar `drizzle.config.ts`.
-- Configurar driver do MySQL (ex: mysql2).
-- Configurar `DATABASE_URL`.
-- Criar client Drizzle compartilhado.
-- Criar script para Drizzle Studio.
+- [x] Instalar Drizzle ORM e drizzle-kit.
+- [x] Configurar `drizzle.config.ts`.
+- [x] Configurar driver do MySQL (ex: mysql2).
+- [x] Configurar `DATABASE_URL`.
+- [x] Criar client Drizzle compartilhado.
+- [ ] Criar script para Drizzle Studio.
 
 ### Critérios de aceite
 
@@ -189,15 +189,15 @@ Criar o primeiro modelo de dados da API.
 
 ### Tabelas iniciais
 
-- users
-- patients
-- doctors
-- admins
-- specialties
-- clinics
-- doctor_availabilities
-- appointments
-- notifications
+- [x] users
+- [x] patients
+- [x] doctors
+- [x] admins (clinic_admins)
+- [x] specialties
+- [x] clinics
+- [x] doctor_availabilities
+- [x] appointments
+- [x] notifications
 
 ### Decisão importante
 
@@ -236,10 +236,10 @@ Gerar e aplicar a migration inicial do banco.
 
 ### Tarefas
 
-- Criar migration inicial.
-- Aplicar migration no MySQL local.
-- Validar tabelas criadas.
-- Versionar migration no repositório.
+- [x] Criar migration inicial.
+- [ ] Aplicar migration no MySQL local.
+- [ ] Validar tabelas criadas.
+- [x] Versionar migration no repositório.
 
 ### Critérios de aceite
 
@@ -266,9 +266,9 @@ Popular o banco com especialidades médicas iniciais.
 
 ### Tarefas
 
-- Criar arquivo de seed.
-- Configurar script `db:seed`.
-- Garantir que seed possa rodar mais de uma vez sem duplicar dados.
+- [ ] Criar arquivo de seed.
+- [ ] Configurar script `db:seed`.
+- [ ] Garantir que seed possa rodar mais de uma vez sem duplicar dados.
 
 ### Critérios de aceite
 
@@ -296,14 +296,14 @@ GET /auth/me
 
 ### Tarefas
 
-- Criar módulo `auth`.
-- Criar schemas com Zod v4.
-- Criar cadastro de paciente.
-- Criar login com e-mail e senha.
-- Gerar JWT.
-- Criar middleware `authenticate`.
-- Criar middleware `authorize`.
-- Criar retorno seguro sem `passwordHash`.
+- [ ] Criar módulo `auth`.
+- [ ] Criar schemas com Zod v4.
+- [ ] Criar cadastro de paciente.
+- [ ] Criar login com e-mail e senha.
+- [ ] Gerar JWT.
+- [ ] Criar middleware `authenticate`.
+- [ ] Criar middleware `authorize`.
+- [ ] Criar retorno seguro sem `passwordHash`.
 
 ### Critérios de aceite
 
@@ -332,11 +332,11 @@ PATCH /patients/me
 
 ### Tarefas
 
-- Criar módulo `patients`.
-- Criar busca por usuário autenticado.
-- Criar atualização de nome e telefone.
-- Validar dados com Zod.
-- Proteger rotas com perfil `patient`.
+- [ ] Criar módulo `patients`.
+- [ ] Criar busca por usuário autenticado.
+- [ ] Criar atualização de nome e telefone.
+- [ ] Validar dados com Zod.
+- [ ] Proteger rotas com perfil `patient`.
 
 ### Critérios de aceite
 
@@ -372,12 +372,12 @@ DELETE /admin/specialties/:id
 
 ### Tarefas
 
-- Criar módulo `specialties`.
-- Criar listagem de especialidades ativas.
-- Criar detalhe da especialidade.
-- Criar CRUD administrativo.
-- Validar entrada com Zod.
-- Proteger rotas admin.
+- [ ] Criar módulo `specialties`.
+- [ ] Criar listagem de especialidades ativas.
+- [ ] Criar detalhe da especialidade.
+- [ ] Criar CRUD administrativo.
+- [ ] Validar entrada com Zod.
+- [ ] Proteger rotas admin.
 
 ### Critérios de aceite
 
@@ -419,14 +419,14 @@ DELETE /admin/doctors/:id
 
 ### Tarefas
 
-- Criar módulo `doctors`.
-- Criar listagem paginada.
-- Criar filtro por especialidade.
-- Criar busca por nome.
-- Criar detalhe do médico.
-- Criar CRUD administrativo.
-- Relacionar médico com especialidade e clínica.
-- Proteger rotas admin.
+- [ ] Criar módulo `doctors`.
+- [ ] Criar listagem paginada.
+- [ ] Criar filtro por especialidade.
+- [ ] Criar busca por nome.
+- [ ] Criar detalhe do médico.
+- [ ] Criar CRUD administrativo.
+- [ ] Relacionar médico com especialidade e clínica.
+- [ ] Proteger rotas admin.
 
 ### Critérios de aceite
 
@@ -463,12 +463,12 @@ DELETE /admin/availability/:id
 
 ### Tarefas
 
-- Criar módulo `availability`.
-- Criar regras semanais de atendimento.
-- Criar cálculo de slots por data.
-- Excluir slots já ocupados.
-- Considerar duração da consulta.
-- Proteger gestão de disponibilidade com admin.
+- [ ] Criar módulo `availability`.
+- [ ] Criar regras semanais de atendimento.
+- [ ] Criar cálculo de slots por data.
+- [ ] Excluir slots já ocupados.
+- [ ] Considerar duração da consulta.
+- [ ] Proteger gestão de disponibilidade com admin.
 
 ### Critérios de aceite
 
@@ -497,12 +497,12 @@ GET /appointments/:id
 
 ### Tarefas
 
-- Criar módulo `appointments`.
-- Criar criação de consulta.
-- Relacionar paciente autenticado.
-- Relacionar médico, especialidade e clínica.
-- Definir status inicial.
-- Retornar dados formatados para o mobile.
+- [ ] Criar módulo `appointments`.
+- [ ] Criar criação de consulta.
+- [ ] Relacionar paciente autenticado.
+- [ ] Relacionar médico, especialidade e clínica.
+- [ ] Definir status inicial.
+- [ ] Retornar dados formatados para o mobile.
 
 ### Critérios de aceite
 
@@ -547,11 +547,11 @@ no_show
 
 ### Tarefas
 
-- Criar validação de disponibilidade.
-- Criar validação de conflito por médico.
-- Criar validação de conflito por paciente.
-- Executar criação dentro de transação.
-- Retornar erro 409 para conflito.
+- [ ] Criar validação de disponibilidade.
+- [ ] Criar validação de conflito por médico.
+- [ ] Criar validação de conflito por paciente.
+- [ ] Executar criação dentro de transação.
+- [ ] Retornar erro 409 para conflito.
 
 ### Critérios de aceite
 
@@ -595,11 +595,11 @@ no_show
 
 ### Tarefas
 
-- Criar listagem de próximas consultas.
-- Criar listagem de histórico.
-- Ordenar próximas por data crescente.
-- Ordenar histórico por data decrescente.
-- Retornar dados compactos para o app.
+- [ ] Criar listagem de próximas consultas.
+- [ ] Criar listagem de histórico.
+- [ ] Ordenar próximas por data crescente.
+- [ ] Ordenar histórico por data decrescente.
+- [ ] Retornar dados compactos para o app.
 
 ### Critérios de aceite
 
@@ -632,12 +632,12 @@ PATCH /appointments/:id/cancel
 
 ### Tarefas
 
-- Criar endpoint de cancelamento.
-- Validar se consulta pertence ao paciente.
-- Validar se consulta é futura.
-- Validar se consulta ainda pode ser cancelada.
-- Salvar motivo do cancelamento.
-- Atualizar status para `canceled`.
+- [ ] Criar endpoint de cancelamento.
+- [ ] Validar se consulta pertence ao paciente.
+- [ ] Validar se consulta é futura.
+- [ ] Validar se consulta ainda pode ser cancelada.
+- [ ] Salvar motivo do cancelamento.
+- [ ] Atualizar status para `canceled`.
 
 ### Critérios de aceite
 
@@ -659,13 +659,13 @@ Documentar a API para facilitar integração com o app mobile.
 
 ### Tarefas
 
-- Criar README da API.
-- Criar documentação de variáveis de ambiente.
-- Criar documentação dos endpoints.
-- Criar exemplos de request/response.
-- Criar documentação de erros.
-- Criar instruções para rodar Docker.
-- Criar instruções para migrations e seed.
+- [ ] Criar README da API.
+- [ ] Criar documentação de variáveis de ambiente.
+- [ ] Criar documentação dos endpoints.
+- [ ] Criar exemplos de request/response.
+- [ ] Criar documentação de erros.
+- [ ] Criar instruções para rodar Docker.
+- [ ] Criar instruções para migrations e seed.
 
 ### Critérios de aceite
 
@@ -683,18 +683,18 @@ Conectar o aplicativo mobile à API.
 
 ### Tarefas
 
-- Configurar base URL no app.
-- Criar client HTTP.
-- Integrar login.
-- Integrar cadastro.
-- Integrar listagem de especialidades.
-- Integrar listagem de médicos.
-- Integrar horários disponíveis.
-- Integrar criação de consulta.
-- Integrar próximas consultas.
-- Integrar histórico.
-- Integrar cancelamento.
-- Tratar loading, erro e empty states.
+- [ ] Configurar base URL no app.
+- [ ] Criar client HTTP.
+- [ ] Integrar login.
+- [ ] Integrar cadastro.
+- [ ] Integrar listagem de especialidades.
+- [ ] Integrar listagem de médicos.
+- [ ] Integrar horários disponíveis.
+- [ ] Integrar criação de consulta.
+- [ ] Integrar próximas consultas.
+- [ ] Integrar histórico.
+- [ ] Integrar cancelamento.
+- [ ] Tratar loading, erro e empty states.
 
 ### Critérios de aceite
 
