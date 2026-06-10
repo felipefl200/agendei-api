@@ -372,12 +372,12 @@ DELETE /admin/specialties/:id
 
 ### Tarefas
 
-- [ ] Criar módulo `specialties`.
-- [ ] Criar listagem de especialidades ativas.
-- [ ] Criar detalhe da especialidade.
-- [ ] Criar CRUD administrativo.
-- [ ] Validar entrada com Zod.
-- [ ] Proteger rotas admin.
+- [x] Criar módulo `specialties`.
+- [x] Criar listagem de especialidades ativas.
+- [x] Criar detalhe da especialidade.
+- [x] Criar CRUD administrativo.
+- [x] Validar entrada com Zod.
+- [x] Proteger rotas admin.
 
 ### Critérios de aceite
 
