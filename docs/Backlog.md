@@ -497,12 +497,12 @@ GET /appointments/:id
 
 ### Tarefas
 
-- [ ] Criar módulo `appointments`.
-- [ ] Criar criação de consulta.
-- [ ] Relacionar paciente autenticado.
-- [ ] Relacionar médico, especialidade e clínica.
-- [ ] Definir status inicial.
-- [ ] Retornar dados formatados para o mobile.
+- [x] Criar módulo `appointments`.
+- [x] Criar criação de consulta.
+- [x] Relacionar paciente autenticado.
+- [x] Relacionar médico, especialidade e clínica.
+- [x] Definir status inicial.
+- [x] Retornar dados formatados para o mobile.
 
 ### Critérios de aceite
 
@@ -547,11 +547,11 @@ no_show
 
 ### Tarefas
 
-- [ ] Criar validação de disponibilidade.
-- [ ] Criar validação de conflito por médico.
-- [ ] Criar validação de conflito por paciente.
-- [ ] Executar criação dentro de transação.
-- [ ] Retornar erro 409 para conflito.
+- [x] Criar validação de disponibilidade.
+- [x] Criar validação de conflito por médico.
+- [x] Criar validação de conflito por paciente.
+- [x] Executar criação dentro de transação.
+- [x] Retornar erro 409 para conflito.
 
 ### Critérios de aceite
 

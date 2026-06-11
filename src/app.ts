@@ -1,3 +1,4 @@
+import { registerAppointmentsRoutes } from './modules/appointments/appointments.routes.js'
 import { registerAuthRoutes } from './modules/auth/auth.routes.js'
 import { registerAvailabilityRoutes } from './modules/availability/availability.routes.js'
 import { registerDoctorsRoutes } from './modules/doctors/doctors.routes.js'
@@ -9,6 +10,7 @@ import { createHttpServer } from './shared/http/http-server.js'
 export function buildApp() {
   const app = createHttpServer()
 
+  app.register(registerAppointmentsRoutes)
   app.register(registerAvailabilityRoutes)
   app.register(registerAuthRoutes)
   app.register(registerDoctorsRoutes)
