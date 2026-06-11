@@ -1,5 +1,4 @@
 import { AppError } from '../../shared/errors/app-error.js'
-
 import {
   dateStringToUtcDate,
   formatMinutesAsTime,
@@ -9,8 +8,8 @@ import {
 } from '../availability/availability.time.js'
 
 import type {
-  AppointmentSummary,
   AppointmentsRepository,
+  AppointmentSummary,
   Clock,
   IdGenerator,
   PatientRecord,

@@ -14,9 +14,11 @@ class InMemorySpecialtiesRepository implements SpecialtiesRepository {
   constructor(private readonly specialties: Map<string, Specialty>) {}
 
   findActive(): Promise<Specialty[]> {
-    return Promise.resolve(Array.from(this.specialties.values())
-      .filter((specialty) => specialty.active)
-      .sort((a, b) => a.name.localeCompare(b.name)))
+    return Promise.resolve(
+      Array.from(this.specialties.values())
+        .filter((specialty) => specialty.active)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    )
   }
 
   findActiveById(id: string): Promise<Specialty | null> {
@@ -33,7 +35,7 @@ class InMemorySpecialtiesRepository implements SpecialtiesRepository {
     return Promise.resolve(
       Array.from(this.specialties.values()).find(
         (specialty) => specialty.name === name,
-      ) ?? null
+      ) ?? null,
     )
   }
 
@@ -64,7 +66,10 @@ class InMemorySpecialtiesRepository implements SpecialtiesRepository {
       ...specialty,
       ...input,
       name: input.name ?? specialty.name,
-      description: input.description !== undefined ? input.description : specialty.description,
+      description:
+        input.description !== undefined
+          ? input.description
+          : specialty.description,
       icon: input.icon !== undefined ? input.icon : specialty.icon,
       updatedAt: fixedNow,
     }

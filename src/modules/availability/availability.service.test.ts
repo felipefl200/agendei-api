@@ -116,7 +116,10 @@ class InMemoryAvailabilityRepository implements AvailabilityRepository {
     return Promise.resolve(rule)
   }
 
-  update(id: string, input: UpdateAvailabilityRuleInput): Promise<AvailabilityRule> {
+  update(
+    id: string,
+    input: UpdateAvailabilityRuleInput,
+  ): Promise<AvailabilityRule> {
     const rule = this.rules.get(id)
 
     if (!rule) {
@@ -174,13 +177,15 @@ function makeRule(overrides: Partial<AvailabilityRule> = {}): AvailabilityRule {
   }
 }
 
-function makeSut(options: {
-  doctors?: string[]
-  clinics?: string[]
-  doctorClinics?: string[]
-  rules?: AvailabilityRule[]
-  appointments?: AppointmentSlot[]
-} = {}) {
+function makeSut(
+  options: {
+    doctors?: string[]
+    clinics?: string[]
+    doctorClinics?: string[]
+    rules?: AvailabilityRule[]
+    appointments?: AppointmentSlot[]
+  } = {},
+) {
   const doctors = new Set(options.doctors ?? [doctorId])
   const clinics = new Set(options.clinics ?? [clinicId])
   const doctorClinics = new Set(

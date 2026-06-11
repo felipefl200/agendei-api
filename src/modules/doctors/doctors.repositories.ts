@@ -136,10 +136,7 @@ export class DrizzleDoctorsRepository implements DoctorsRepository {
       })
       .from(doctors)
       .innerJoin(users, eq(doctors.userId, users.id))
-      .innerJoin(
-        doctorSpecialties,
-        eq(doctorSpecialties.doctorId, doctors.id),
-      )
+      .innerJoin(doctorSpecialties, eq(doctorSpecialties.doctorId, doctors.id))
       .innerJoin(specialties, eq(doctorSpecialties.specialtyId, specialties.id))
       .innerJoin(doctorClinics, eq(doctorClinics.doctorId, doctors.id))
       .innerJoin(clinics, eq(doctorClinics.clinicId, clinics.id))
@@ -336,10 +333,7 @@ export class DrizzleDoctorsRepository implements DoctorsRepository {
           doctorUpdate.avatarUrl = input.avatarUrl
         }
 
-        await tx
-          .update(doctors)
-          .set(doctorUpdate)
-          .where(eq(doctors.id, id))
+        await tx.update(doctors).set(doctorUpdate).where(eq(doctors.id, id))
       }
 
       if (input.specialtyId !== undefined) {

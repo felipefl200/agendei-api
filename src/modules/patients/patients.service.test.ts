@@ -44,7 +44,7 @@ class InMemoryPatientsRepository implements PatientsRepository {
     return Promise.resolve(
       Array.from(this.patients.values()).find(
         (patient) => patient.userId === userId,
-      ) ?? null
+      ) ?? null,
     )
   }
 

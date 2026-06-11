@@ -150,9 +150,8 @@ export function createAvailabilityService(deps: AvailabilityServiceDeps) {
   }
 
   async function listByDoctor(doctorId: string): Promise<AvailabilityRule[]> {
-    const doctor = await deps.availabilityRepository.findActiveDoctorById(
-      doctorId,
-    )
+    const doctor =
+      await deps.availabilityRepository.findActiveDoctorById(doctorId)
 
     if (!doctor) {
       throw new AppError('Doctor not found', 404)

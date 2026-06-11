@@ -141,9 +141,7 @@ export class DrizzleAvailabilityRepository implements AvailabilityRepository {
     return row ? toAvailabilityRule(row) : null
   }
 
-  async create(
-    input: CreateAvailabilityRuleInput,
-  ): Promise<AvailabilityRule> {
+  async create(input: CreateAvailabilityRuleInput): Promise<AvailabilityRule> {
     await db.insert(doctorAvailabilities).values({
       id: input.id,
       doctorId: input.doctorId,

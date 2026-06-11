@@ -65,9 +65,7 @@ class InMemoryAppointmentsRepository implements AppointmentsRepository {
   ): Promise<{ id: string } | null> {
     const key = `${doctorId}:${specialtyId}`
 
-    return Promise.resolve(
-      this.doctorSpecialties.has(key) ? { id: key } : null,
-    )
+    return Promise.resolve(this.doctorSpecialties.has(key) ? { id: key } : null)
   }
 
   findActiveAvailabilityRules(input: {
@@ -203,17 +201,19 @@ function makeAppointment(
   }
 }
 
-function makeSut(options: {
-  patient?: PatientRecord | null
-  doctors?: string[]
-  clinics?: string[]
-  specialties?: string[]
-  doctorClinics?: string[]
-  doctorSpecialties?: string[]
-  availabilityRules?: AvailabilityRule[]
-  appointments?: AppointmentRecord[]
-  todayDateString?: string
-} = {}) {
+function makeSut(
+  options: {
+    patient?: PatientRecord | null
+    doctors?: string[]
+    clinics?: string[]
+    specialties?: string[]
+    doctorClinics?: string[]
+    doctorSpecialties?: string[]
+    availabilityRules?: AvailabilityRule[]
+    appointments?: AppointmentRecord[]
+    todayDateString?: string
+  } = {},
+) {
   const patients = new Map<string, PatientRecord>()
 
   if (options.patient !== null) {
@@ -241,10 +241,9 @@ function makeSut(options: {
       },
     ],
     new Map(
-      options.appointments?.map((appointment) => [
-        appointment.id,
-        appointment,
-      ] as const) ?? [],
+      options.appointments?.map(
+        (appointment) => [appointment.id, appointment] as const,
+      ) ?? [],
     ),
   )
   const idGenerator: IdGenerator = {

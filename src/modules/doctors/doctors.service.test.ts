@@ -65,7 +65,7 @@ class InMemoryDoctorsRepository implements DoctorsRepository {
   findByCrm(crm: string): Promise<DoctorRecord | null> {
     return Promise.resolve(
       Array.from(this.doctors.values()).find((doctor) => doctor.crm === crm) ??
-      null
+        null,
     )
   }
 
@@ -77,9 +77,7 @@ class InMemoryDoctorsRepository implements DoctorsRepository {
     return Promise.resolve(doctor ? { id: doctor.userId } : null)
   }
 
-  findActiveSpecialtyById(
-    id: string,
-  ): Promise<ActiveSpecialty | null> {
+  findActiveSpecialtyById(id: string): Promise<ActiveSpecialty | null> {
     return Promise.resolve(this.specialties.get(id) ?? null)
   }
 
@@ -118,10 +116,7 @@ class InMemoryDoctorsRepository implements DoctorsRepository {
     return Promise.resolve(doctor)
   }
 
-  update(
-    id: string,
-    input: UpdateDoctorInput,
-  ): Promise<DoctorProfile> {
+  update(id: string, input: UpdateDoctorInput): Promise<DoctorProfile> {
     const doctor = this.doctors.get(id)
 
     if (!doctor) {
@@ -197,27 +192,30 @@ function makeDoctor(overrides: Partial<DoctorRecord> = {}): DoctorRecord {
   }
 }
 
-function makeSut(options: {
-  doctors?: DoctorRecord[]
-  specialties?: ActiveSpecialty[]
-  clinics?: ActiveClinic[]
-} = {}) {
+function makeSut(
+  options: {
+    doctors?: DoctorRecord[]
+    specialties?: ActiveSpecialty[]
+    clinics?: ActiveClinic[]
+  } = {},
+) {
   const doctors = new Map<string, DoctorRecord>(
     options.doctors?.map((doctor) => [doctor.id, doctor] as const) ?? [
       ['doctor-id', makeDoctor()] as const,
     ],
   )
   const specialties = new Map<string, ActiveSpecialty>(
-    options.specialties?.map((specialty) => [specialty.id, specialty] as const) ??
+    options.specialties?.map(
+      (specialty) => [specialty.id, specialty] as const,
+    ) ?? [
       [
-        [
-          specialtyId,
-          {
-            id: specialtyId,
-            name: 'Clínica Geral',
-          },
-        ] as const,
-      ],
+        specialtyId,
+        {
+          id: specialtyId,
+          name: 'Clínica Geral',
+        },
+      ] as const,
+    ],
   )
   const clinics = new Map<string, ActiveClinic>(
     options.clinics?.map((clinic) => [clinic.id, clinic] as const) ?? [

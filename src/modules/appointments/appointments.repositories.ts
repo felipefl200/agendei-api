@@ -12,7 +12,6 @@ import {
   specialties,
   users,
 } from '../../shared/database/schema/index.js'
-
 import {
   normalizeTimeForApi,
   normalizeTimeForDatabase,
@@ -20,8 +19,8 @@ import {
 
 import type {
   AppointmentConflictInput,
-  AppointmentSummary,
   AppointmentsRepository,
+  AppointmentSummary,
   AvailabilityRule,
   CreateAppointmentInput,
   PatientRecord,

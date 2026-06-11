@@ -22,7 +22,7 @@ class InMemoryUsersRepository implements AuthUsersRepository {
   findByEmail(email: string): Promise<AuthUser | null> {
     return Promise.resolve(
       Array.from(this.users.values()).find((user) => user.email === email) ??
-      null
+        null,
     )
   }
 
@@ -30,7 +30,9 @@ class InMemoryUsersRepository implements AuthUsersRepository {
     return Promise.resolve(this.users.get(id) ?? null)
   }
 
-  create(input: Parameters<AuthUsersRepository['create']>[0]): Promise<AuthUser> {
+  create(
+    input: Parameters<AuthUsersRepository['create']>[0],
+  ): Promise<AuthUser> {
     const user: AuthUser = {
       ...input,
       active: true,
@@ -69,7 +71,9 @@ class InMemoryPatientsRepository implements AuthPatientsRepository {
     private readonly shouldFail = false,
   ) {}
 
-  create(input: Parameters<AuthPatientsRepository['create']>[0]): Promise<AuthPatient> {
+  create(
+    input: Parameters<AuthPatientsRepository['create']>[0],
+  ): Promise<AuthPatient> {
     if (this.shouldFail) {
       return Promise.reject(new Error('Could not create patient'))
     }
@@ -170,7 +174,10 @@ function makeSut(
     }),
   }
   const tokenProvider: TokenProvider = {
-    sign: vi.fn((payload: { sub: string; role: string }) => `token:${payload.sub}:${payload.role}`),
+    sign: vi.fn(
+      (payload: { sub: string; role: string }) =>
+        `token:${payload.sub}:${payload.role}`,
+    ),
     verify: vi.fn(),
   }
   const ids = ['new-user-id', 'new-patient-id']
