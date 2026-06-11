@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { authenticate, authorize } from '../auth/auth.middlewares.js'
 
 import {
+  cancelAppointmentController,
   createAppointmentController,
   getAppointmentController,
   listHistoryAppointmentsController,
@@ -24,6 +25,11 @@ export function registerAppointmentsRoutes(app: FastifyInstance) {
     '/appointments/history',
     { preHandler: [authenticate, authorize(['patient'])] },
     listHistoryAppointmentsController,
+  )
+  app.patch(
+    '/appointments/:id/cancel',
+    { preHandler: [authenticate, authorize(['patient'])] },
+    cancelAppointmentController,
   )
   app.get(
     '/appointments/:id',

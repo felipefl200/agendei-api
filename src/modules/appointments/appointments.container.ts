@@ -24,5 +24,8 @@ function todayDateString() {
 export const appointmentsService = createAppointmentsService({
   appointmentsRepository: new DrizzleAppointmentsRepository(),
   idGenerator: { randomUUID },
-  clock: { todayDateString },
+  clock: {
+    now: () => new Date(),
+    todayDateString,
+  },
 })

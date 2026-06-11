@@ -5,6 +5,7 @@ import { AppError } from '../../shared/errors/app-error.js'
 import { appointmentsService } from './appointments.container.js'
 import {
   appointmentParamsSchema,
+  cancelAppointmentSchema,
   createAppointmentSchema,
 } from './appointments.schemas.js'
 
@@ -56,5 +57,18 @@ export async function listHistoryAppointmentsController(
 
   return {
     appointments: await appointmentsService.listHistory(request.user.id),
+  }
+}
+
+export async function cancelAppointmentController(request: FastifyRequest) {
+  if (!request.user) {
+    throw new AppError('Unauthenticated', 401)
+  }
+
+  const { id } = appointmentParamsSchema.parse(request.params)
+  const input = cancelAppointmentSchema.parse(request.body)
+
+  return {
+    appointment: await appointmentsService.cancel(request.user.id, id, input),
   }
 }

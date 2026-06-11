@@ -632,12 +632,12 @@ PATCH /appointments/:id/cancel
 
 ### Tarefas
 
-- [ ] Criar endpoint de cancelamento.
-- [ ] Validar se consulta pertence ao paciente.
-- [ ] Validar se consulta é futura.
-- [ ] Validar se consulta ainda pode ser cancelada.
-- [ ] Salvar motivo do cancelamento.
-- [ ] Atualizar status para `canceled`.
+- [x] Criar endpoint de cancelamento.
+- [x] Validar se consulta pertence ao paciente.
+- [x] Validar se consulta é futura.
+- [x] Validar se consulta ainda pode ser cancelada.
+- [x] Salvar motivo do cancelamento.
+- [x] Atualizar status para `canceled`.
 
 ### Critérios de aceite
 

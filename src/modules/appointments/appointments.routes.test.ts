@@ -5,6 +5,7 @@ import type { UserRole } from '../auth/auth.types.js'
 
 vi.mock(import('./appointments.container.js'), () => ({
   appointmentsService: {
+    cancel: vi.fn(),
     create: vi.fn(),
     getById: vi.fn(),
     listHistory: vi.fn(),
@@ -46,6 +47,11 @@ const compactAppointment = {
   date: '2026-06-15',
   startTime: '10:30',
   status: 'scheduled' as const,
+}
+const canceledAppointment = {
+  id: appointmentId,
+  cancelReason: 'Não poderei comparecer',
+  status: 'canceled' as const,
 }
 
 function signToken(role: UserRole = 'patient') {
@@ -161,6 +167,34 @@ describe('appointments routes', () => {
     })
   })
 
+  it('cancels authenticated patient appointments using the API wrapper style', async () => {
+    vi.mocked(appointmentsService.cancel).mockResolvedValue(canceledAppointment)
+    const app = buildApp()
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: `/appointments/${appointmentId}/cancel`,
+      headers: { authorization: `Bearer ${signToken()}` },
+      payload: {
+        reason: '  Não poderei comparecer  ',
+      },
+    })
+
+    await app.close()
+
+    expect(response.statusCode).toBe(200)
+    expect(appointmentsService.cancel).toHaveBeenCalledWith(
+      'user-id',
+      appointmentId,
+      {
+        reason: 'Não poderei comparecer',
+      },
+    )
+    expect(response.json()).toEqual({
+      appointment: canceledAppointment,
+    })
+  })
+
   it('protects appointment routes', async () => {
     const app = buildApp()
 
@@ -197,6 +231,33 @@ describe('appointments routes', () => {
     expect(appointmentsService.listUpcoming).not.toHaveBeenCalled()
   })
 
+  it('protects appointment cancellation route', async () => {
+    const app = buildApp()
+
+    const missingTokenResponse = await app.inject({
+      method: 'PATCH',
+      url: `/appointments/${appointmentId}/cancel`,
+      payload: {
+        reason: 'Não poderei comparecer',
+      },
+    })
+
+    const forbiddenResponse = await app.inject({
+      method: 'PATCH',
+      url: `/appointments/${appointmentId}/cancel`,
+      headers: { authorization: `Bearer ${signToken('doctor')}` },
+      payload: {
+        reason: 'Não poderei comparecer',
+      },
+    })
+
+    await app.close()
+
+    expect(missingTokenResponse.statusCode).toBe(401)
+    expect(forbiddenResponse.statusCode).toBe(403)
+    expect(appointmentsService.cancel).not.toHaveBeenCalled()
+  })
+
   it('returns 400 for invalid appointment input and params', async () => {
     const app = buildApp()
 
@@ -219,11 +280,32 @@ describe('appointments routes', () => {
       headers: { authorization: `Bearer ${signToken()}` },
     })
 
+    const invalidCancelBodyResponse = await app.inject({
+      method: 'PATCH',
+      url: `/appointments/${appointmentId}/cancel`,
+      headers: { authorization: `Bearer ${signToken()}` },
+      payload: {
+        reason: 'ab',
+      },
+    })
+
+    const invalidCancelParamResponse = await app.inject({
+      method: 'PATCH',
+      url: '/appointments/not-a-uuid/cancel',
+      headers: { authorization: `Bearer ${signToken()}` },
+      payload: {
+        reason: 'Não poderei comparecer',
+      },
+    })
+
     await app.close()
 
     expect(invalidBodyResponse.statusCode).toBe(400)
     expect(invalidParamResponse.statusCode).toBe(400)
+    expect(invalidCancelBodyResponse.statusCode).toBe(400)
+    expect(invalidCancelParamResponse.statusCode).toBe(400)
     expect(appointmentsService.create).not.toHaveBeenCalled()
     expect(appointmentsService.getById).not.toHaveBeenCalled()
+    expect(appointmentsService.cancel).not.toHaveBeenCalled()
   })
 })

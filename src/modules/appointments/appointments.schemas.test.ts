@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   appointmentParamsSchema,
+  cancelAppointmentSchema,
   createAppointmentSchema,
 } from './appointments.schemas.js'
 
@@ -35,6 +36,16 @@ describe('appointments schemas', () => {
     })
   })
 
+  it('validates cancel appointment input', () => {
+    expect(
+      cancelAppointmentSchema.parse({
+        reason: '  Não poderei comparecer  ',
+      }),
+    ).toEqual({
+      reason: 'Não poderei comparecer',
+    })
+  })
+
   it('rejects invalid creation input', () => {
     expect(() =>
       createAppointmentSchema.parse({
@@ -63,6 +74,20 @@ describe('appointments schemas', () => {
         clinicId,
         date: '2026-06-15',
         startTime: '25:00',
+      }),
+    ).toThrow()
+  })
+
+  it('rejects invalid cancel appointment input', () => {
+    expect(() => cancelAppointmentSchema.parse({})).toThrow()
+    expect(() => cancelAppointmentSchema.parse({ reason: '  ab  ' })).toThrow()
+    expect(() =>
+      cancelAppointmentSchema.parse({ reason: 'a'.repeat(501) }),
+    ).toThrow()
+    expect(() =>
+      cancelAppointmentSchema.parse({
+        reason: 'Não poderei comparecer',
+        unexpectedField: true,
       }),
     ).toThrow()
   })

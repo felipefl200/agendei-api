@@ -10,12 +10,16 @@ import {
 import type {
   AppointmentsRepository,
   AppointmentSummary,
+  CanceledAppointmentSummary,
   Clock,
   CompactAppointmentSummary,
   IdGenerator,
   PatientRecord,
 } from './appointments.ports.js'
-import type { CreateAppointmentBody } from './appointments.schemas.js'
+import type {
+  CancelAppointmentBody,
+  CreateAppointmentBody,
+} from './appointments.schemas.js'
 
 type AppointmentsServiceDeps = {
   appointmentsRepository: AppointmentsRepository
@@ -105,6 +109,29 @@ async function getAppointmentEndTime(
   }
 
   throw new AppError('Appointment time is outside doctor availability', 400)
+}
+
+function getSaoPauloDateTimeString(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    day: '2-digit',
+    hour: '2-digit',
+    hourCycle: 'h23',
+    minute: '2-digit',
+    month: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+  }).formatToParts(date)
+  const year = parts.find((part) => part.type === 'year')?.value
+  const month = parts.find((part) => part.type === 'month')?.value
+  const day = parts.find((part) => part.type === 'day')?.value
+  const hour = parts.find((part) => part.type === 'hour')?.value
+  const minute = parts.find((part) => part.type === 'minute')?.value
+
+  if (!year || !month || !day || !hour || !minute) {
+    throw new Error('Could not format current date time')
+  }
+
+  return `${year}-${month}-${day}T${hour}:${minute}`
 }
 
 export function createAppointmentsService(deps: AppointmentsServiceDeps) {
@@ -207,7 +234,56 @@ export function createAppointmentsService(deps: AppointmentsServiceDeps) {
     return await deps.appointmentsRepository.findHistoryByPatientId(patient.id)
   }
 
+  async function cancel(
+    authenticatedUserId: string,
+    id: string,
+    input: CancelAppointmentBody,
+  ): Promise<CanceledAppointmentSummary> {
+    const patient = await getAuthenticatedPatient(
+      deps.appointmentsRepository,
+      authenticatedUserId,
+    )
+    const appointment =
+      await deps.appointmentsRepository.findCancelableByIdForPatient({
+        id,
+        patientId: patient.id,
+      })
+
+    if (!appointment) {
+      throw new AppError('Appointment not found', 404)
+    }
+
+    if (appointment.status === 'completed' || appointment.status === 'no_show') {
+      throw new AppError('Appointment cannot be canceled', 400)
+    }
+
+    if (appointment.status === 'canceled') {
+      throw new AppError('Appointment is already canceled', 409)
+    }
+
+    if (
+      `${appointment.date}T${appointment.startTime}` <=
+      getSaoPauloDateTimeString(deps.clock.now())
+    ) {
+      throw new AppError('Only future appointments can be canceled', 400)
+    }
+
+    const canceledAppointment = await deps.appointmentsRepository.cancel({
+      id,
+      patientId: patient.id,
+      reason: input.reason,
+      canceledByUserId: authenticatedUserId,
+    })
+
+    if (!canceledAppointment) {
+      throw new AppError('Appointment cannot be canceled', 400)
+    }
+
+    return canceledAppointment
+  }
+
   return {
+    cancel,
     create,
     getById,
     listHistory,

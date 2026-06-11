@@ -30,6 +30,12 @@ export type CompactAppointmentSummary = {
   status: AppointmentStatus
 }
 
+export type CanceledAppointmentSummary = {
+  id: string
+  status: 'canceled'
+  cancelReason: string
+}
+
 export type PatientRecord = {
   id: string
   userId: string
@@ -60,6 +66,14 @@ export type AppointmentConflictInput = {
   startTime: string
 }
 
+export type CancelableAppointmentRecord = {
+  id: string
+  patientId: string
+  date: string
+  startTime: string
+  status: AppointmentStatus
+}
+
 export type AppointmentsRepository = {
   findActivePatientByUserId(userId: string): Promise<PatientRecord | null>
   findActiveDoctorById(id: string): Promise<{ id: string } | null>
@@ -85,12 +99,23 @@ export type AppointmentsRepository = {
     id: string
     patientId: string
   }): Promise<AppointmentSummary | null>
+  findCancelableByIdForPatient(input: {
+    id: string
+    patientId: string
+  }): Promise<CancelableAppointmentRecord | null>
+  cancel(input: {
+    id: string
+    patientId: string
+    reason: string
+    canceledByUserId: string
+  }): Promise<CanceledAppointmentSummary | null>
   findUpcomingByPatientId(patientId: string): Promise<CompactAppointmentSummary[]>
   findHistoryByPatientId(patientId: string): Promise<CompactAppointmentSummary[]>
 }
 
 export type Clock = {
   todayDateString(): string
+  now(): Date
 }
 
 export type IdGenerator = {

@@ -14,5 +14,12 @@ export const createAppointmentSchema = z.object({
   startTime: timeSchema,
 })
 
+export const cancelAppointmentSchema = z
+  .object({
+    reason: z.string().trim().min(3).max(500),
+  })
+  .strict()
+
 export type AppointmentParams = z.infer<typeof appointmentParamsSchema>
+export type CancelAppointmentBody = z.infer<typeof cancelAppointmentSchema>
 export type CreateAppointmentBody = z.infer<typeof createAppointmentSchema>

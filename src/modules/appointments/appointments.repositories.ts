@@ -22,6 +22,8 @@ import type {
   AppointmentsRepository,
   AppointmentSummary,
   AvailabilityRule,
+  CancelableAppointmentRecord,
+  CanceledAppointmentSummary,
   CompactAppointmentSummary,
   CreateAppointmentInput,
   PatientRecord,
@@ -40,6 +42,10 @@ const historyAppointmentStatuses: AppointmentStatus[] = [
   'completed',
   'canceled',
   'no_show',
+]
+const cancelableAppointmentStatuses: AppointmentStatus[] = [
+  'scheduled',
+  'confirmed',
 ]
 
 type AppointmentsDatabase = typeof db
@@ -342,6 +348,114 @@ export class DrizzleAppointmentsRepository implements AppointmentsRepository {
       .limit(1)
 
     return appointment ? toAppointmentSummary(appointment) : null
+  }
+
+  async findCancelableByIdForPatient(input: {
+    id: string
+    patientId: string
+  }): Promise<CancelableAppointmentRecord | null> {
+    const [appointment] = await db
+      .select({
+        id: appointments.id,
+        patientId: appointments.patientId,
+        date: appointments.date,
+        startTime: appointments.startTime,
+        status: appointments.status,
+      })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.id, input.id),
+          eq(appointments.patientId, input.patientId),
+        ),
+      )
+      .limit(1)
+
+    return appointment
+      ? {
+          id: appointment.id,
+          patientId: appointment.patientId,
+          date: normalizeDateForApi(appointment.date),
+          startTime: normalizeTimeForApi(appointment.startTime),
+          status: appointment.status,
+        }
+      : null
+  }
+
+  async cancel(input: {
+    id: string
+    patientId: string
+    reason: string
+    canceledByUserId: string
+  }): Promise<CanceledAppointmentSummary | null> {
+    return await db.transaction(async (tx) => {
+      const [appointment] = await tx
+        .select({
+          id: appointments.id,
+          status: appointments.status,
+        })
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.id, input.id),
+            eq(appointments.patientId, input.patientId),
+          ),
+        )
+        .limit(1)
+
+      if (
+        !appointment ||
+        !cancelableAppointmentStatuses.includes(appointment.status)
+      ) {
+        return null
+      }
+
+      await tx
+        .update(appointments)
+        .set({
+          cancelReason: input.reason,
+          canceledByUserId: input.canceledByUserId,
+          status: 'canceled',
+        })
+        .where(
+          and(
+            eq(appointments.id, input.id),
+            eq(appointments.patientId, input.patientId),
+            inArray(appointments.status, cancelableAppointmentStatuses),
+          ),
+        )
+
+      const [canceledAppointment] = await tx
+        .select({
+          id: appointments.id,
+          cancelReason: appointments.cancelReason,
+          canceledByUserId: appointments.canceledByUserId,
+          status: appointments.status,
+        })
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.id, input.id),
+            eq(appointments.patientId, input.patientId),
+          ),
+        )
+        .limit(1)
+
+      if (
+        !canceledAppointment ||
+        canceledAppointment.status !== 'canceled' ||
+        canceledAppointment.cancelReason !== input.reason ||
+        canceledAppointment.canceledByUserId !== input.canceledByUserId
+      ) {
+        return null
+      }
+
+      return {
+        id: canceledAppointment.id,
+        cancelReason: input.reason,
+        status: 'canceled',
+      }
+    })
   }
 
   async findUpcomingByPatientId(
