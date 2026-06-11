@@ -7,6 +7,8 @@ vi.mock(import('./appointments.container.js'), () => ({
   appointmentsService: {
     create: vi.fn(),
     getById: vi.fn(),
+    listHistory: vi.fn(),
+    listUpcoming: vi.fn(),
   },
 }))
 
@@ -34,6 +36,15 @@ const appointment = {
   date: '2026-06-15',
   startTime: '10:30',
   endTime: '11:00',
+  status: 'scheduled' as const,
+}
+const compactAppointment = {
+  id: appointmentId,
+  doctorName: 'Dra. Juliana Martins',
+  specialtyName: 'Clínica Geral',
+  clinicName: 'Clínica Saúde & Vida',
+  date: '2026-06-15',
+  startTime: '10:30',
   status: 'scheduled' as const,
 }
 
@@ -100,6 +111,56 @@ describe('appointments routes', () => {
     })
   })
 
+  it('lists upcoming appointments using the API wrapper style', async () => {
+    vi.mocked(appointmentsService.listUpcoming).mockResolvedValue([
+      compactAppointment,
+    ])
+    const app = buildApp()
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/appointments/upcoming',
+      headers: { authorization: `Bearer ${signToken()}` },
+    })
+
+    await app.close()
+
+    expect(response.statusCode).toBe(200)
+    expect(appointmentsService.listUpcoming).toHaveBeenCalledWith('user-id')
+    expect(response.json()).toEqual({
+      appointments: [compactAppointment],
+    })
+  })
+
+  it('lists appointment history using the API wrapper style', async () => {
+    vi.mocked(appointmentsService.listHistory).mockResolvedValue([
+      {
+        ...compactAppointment,
+        status: 'completed' as const,
+      },
+    ])
+    const app = buildApp()
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/appointments/history',
+      headers: { authorization: `Bearer ${signToken()}` },
+    })
+
+    await app.close()
+
+    expect(response.statusCode).toBe(200)
+    expect(appointmentsService.listHistory).toHaveBeenCalledWith('user-id')
+    expect(response.json()).toEqual({
+      appointments: [
+        {
+          ...compactAppointment,
+          status: 'completed' as const,
+        },
+      ],
+    })
+  })
+
   it('protects appointment routes', async () => {
     const app = buildApp()
 
@@ -133,6 +194,7 @@ describe('appointments routes', () => {
     expect(missingTokenResponse.statusCode).toBe(401)
     expect(forbiddenResponse.statusCode).toBe(403)
     expect(appointmentsService.create).not.toHaveBeenCalled()
+    expect(appointmentsService.listUpcoming).not.toHaveBeenCalled()
   })
 
   it('returns 400 for invalid appointment input and params', async () => {

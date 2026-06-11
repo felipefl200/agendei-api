@@ -34,3 +34,27 @@ export async function getAppointmentController(request: FastifyRequest) {
     appointment: await appointmentsService.getById(request.user.id, id),
   }
 }
+
+export async function listUpcomingAppointmentsController(
+  request: FastifyRequest,
+) {
+  if (!request.user) {
+    throw new AppError('Unauthenticated', 401)
+  }
+
+  return {
+    appointments: await appointmentsService.listUpcoming(request.user.id),
+  }
+}
+
+export async function listHistoryAppointmentsController(
+  request: FastifyRequest,
+) {
+  if (!request.user) {
+    throw new AppError('Unauthenticated', 401)
+  }
+
+  return {
+    appointments: await appointmentsService.listHistory(request.user.id),
+  }
+}

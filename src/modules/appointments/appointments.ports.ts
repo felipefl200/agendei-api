@@ -20,6 +20,16 @@ export type AppointmentSummary = {
   status: AppointmentStatus
 }
 
+export type CompactAppointmentSummary = {
+  id: string
+  doctorName: string
+  specialtyName: string
+  clinicName: string
+  date: string
+  startTime: string
+  status: AppointmentStatus
+}
+
 export type PatientRecord = {
   id: string
   userId: string
@@ -75,6 +85,8 @@ export type AppointmentsRepository = {
     id: string
     patientId: string
   }): Promise<AppointmentSummary | null>
+  findUpcomingByPatientId(patientId: string): Promise<CompactAppointmentSummary[]>
+  findHistoryByPatientId(patientId: string): Promise<CompactAppointmentSummary[]>
 }
 
 export type Clock = {

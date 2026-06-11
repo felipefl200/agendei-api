@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 
 import { db } from '../../shared/database/index.js'
 import {
@@ -22,6 +22,7 @@ import type {
   AppointmentsRepository,
   AppointmentSummary,
   AvailabilityRule,
+  CompactAppointmentSummary,
   CreateAppointmentInput,
   PatientRecord,
 } from './appointments.ports.js'
@@ -30,6 +31,15 @@ import type { AppointmentStatus } from './appointments.types.js'
 const blockingAppointmentStatuses: AppointmentStatus[] = [
   'scheduled',
   'confirmed',
+]
+const upcomingAppointmentStatuses: AppointmentStatus[] = [
+  'scheduled',
+  'confirmed',
+]
+const historyAppointmentStatuses: AppointmentStatus[] = [
+  'completed',
+  'canceled',
+  'no_show',
 ]
 
 type AppointmentsDatabase = typeof db
@@ -74,6 +84,23 @@ function toAppointmentSummary(row: AppointmentRow): AppointmentSummary {
     date: normalizeDateForApi(row.date),
     startTime: normalizeTimeForApi(row.startTime),
     endTime: normalizeTimeForApi(row.endTime),
+    status: row.status,
+  }
+}
+
+function toCompactAppointmentSummary(
+  row: Omit<
+    AppointmentRow,
+    'doctorId' | 'specialtyId' | 'clinicId' | 'endTime'
+  >,
+): CompactAppointmentSummary {
+  return {
+    id: row.id,
+    doctorName: row.doctorName,
+    specialtyName: row.specialtyName,
+    clinicName: row.clinicName,
+    date: normalizeDateForApi(row.date),
+    startTime: normalizeTimeForApi(row.startTime),
     status: row.status,
   }
 }
@@ -315,5 +342,63 @@ export class DrizzleAppointmentsRepository implements AppointmentsRepository {
       .limit(1)
 
     return appointment ? toAppointmentSummary(appointment) : null
+  }
+
+  async findUpcomingByPatientId(
+    patientId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    const rows = await db
+      .select({
+        id: appointments.id,
+        doctorName: users.name,
+        specialtyName: specialties.name,
+        clinicName: clinics.name,
+        date: appointments.date,
+        startTime: appointments.startTime,
+        status: appointments.status,
+      })
+      .from(appointments)
+      .innerJoin(doctors, eq(appointments.doctorId, doctors.id))
+      .innerJoin(users, eq(doctors.userId, users.id))
+      .innerJoin(specialties, eq(appointments.specialtyId, specialties.id))
+      .innerJoin(clinics, eq(appointments.clinicId, clinics.id))
+      .where(
+        and(
+          eq(appointments.patientId, patientId),
+          inArray(appointments.status, upcomingAppointmentStatuses),
+        ),
+      )
+      .orderBy(asc(appointments.date), asc(appointments.startTime))
+
+    return rows.map(toCompactAppointmentSummary)
+  }
+
+  async findHistoryByPatientId(
+    patientId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    const rows = await db
+      .select({
+        id: appointments.id,
+        doctorName: users.name,
+        specialtyName: specialties.name,
+        clinicName: clinics.name,
+        date: appointments.date,
+        startTime: appointments.startTime,
+        status: appointments.status,
+      })
+      .from(appointments)
+      .innerJoin(doctors, eq(appointments.doctorId, doctors.id))
+      .innerJoin(users, eq(doctors.userId, users.id))
+      .innerJoin(specialties, eq(appointments.specialtyId, specialties.id))
+      .innerJoin(clinics, eq(appointments.clinicId, clinics.id))
+      .where(
+        and(
+          eq(appointments.patientId, patientId),
+          inArray(appointments.status, historyAppointmentStatuses),
+        ),
+      )
+      .orderBy(desc(appointments.date), desc(appointments.startTime))
+
+    return rows.map(toCompactAppointmentSummary)
   }
 }

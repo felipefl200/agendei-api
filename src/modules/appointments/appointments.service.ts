@@ -11,6 +11,7 @@ import type {
   AppointmentsRepository,
   AppointmentSummary,
   Clock,
+  CompactAppointmentSummary,
   IdGenerator,
   PatientRecord,
 } from './appointments.ports.js'
@@ -184,9 +185,33 @@ export function createAppointmentsService(deps: AppointmentsServiceDeps) {
     return appointment
   }
 
+  async function listUpcoming(
+    authenticatedUserId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    const patient = await getAuthenticatedPatient(
+      deps.appointmentsRepository,
+      authenticatedUserId,
+    )
+
+    return await deps.appointmentsRepository.findUpcomingByPatientId(patient.id)
+  }
+
+  async function listHistory(
+    authenticatedUserId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    const patient = await getAuthenticatedPatient(
+      deps.appointmentsRepository,
+      authenticatedUserId,
+    )
+
+    return await deps.appointmentsRepository.findHistoryByPatientId(patient.id)
+  }
+
   return {
     create,
     getById,
+    listHistory,
+    listUpcoming,
   }
 }
 

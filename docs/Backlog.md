@@ -595,11 +595,11 @@ no_show
 
 ### Tarefas
 
-- [ ] Criar listagem de próximas consultas.
-- [ ] Criar listagem de histórico.
-- [ ] Ordenar próximas por data crescente.
-- [ ] Ordenar histórico por data decrescente.
-- [ ] Retornar dados compactos para o app.
+- [x] Criar listagem de próximas consultas.
+- [x] Criar listagem de histórico.
+- [x] Ordenar próximas por data crescente.
+- [x] Ordenar histórico por data decrescente.
+- [x] Retornar dados compactos para o app.
 
 ### Critérios de aceite
 

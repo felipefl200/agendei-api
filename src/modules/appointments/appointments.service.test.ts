@@ -5,6 +5,7 @@ import type {
   AppointmentsRepository,
   AppointmentSummary,
   AvailabilityRule,
+  CompactAppointmentSummary,
   CreateAppointmentInput,
   IdGenerator,
   PatientRecord,
@@ -135,6 +136,29 @@ class InMemoryAppointmentsRepository implements AppointmentsRepository {
     return Promise.resolve(summary)
   }
 
+  findUpcomingByPatientId(
+    patientId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    return Promise.resolve(
+      this.findCompactByPatientAndStatuses(patientId, [
+        'scheduled',
+        'confirmed',
+      ]).sort(compareAppointmentsAsc),
+    )
+  }
+
+  findHistoryByPatientId(
+    patientId: string,
+  ): Promise<CompactAppointmentSummary[]> {
+    return Promise.resolve(
+      this.findCompactByPatientAndStatuses(patientId, [
+        'completed',
+        'canceled',
+        'no_show',
+      ]).sort(compareAppointmentsDesc),
+    )
+  }
+
   private hasSynchronousConflict(input: CreateAppointmentInput) {
     return Array.from(this.appointments.values()).some((appointment) => {
       return (
@@ -172,6 +196,48 @@ class InMemoryAppointmentsRepository implements AppointmentsRepository {
     this.appointments.set(appointment.id, appointment)
 
     return appointment
+  }
+
+  private findCompactByPatientAndStatuses(
+    patientId: string,
+    statuses: string[],
+  ): CompactAppointmentSummary[] {
+    return Array.from(this.appointments.values())
+      .filter((appointment) => {
+        return (
+          appointment.patientId === patientId &&
+          statuses.includes(appointment.status)
+        )
+      })
+      .map(toCompactAppointmentSummary)
+  }
+}
+
+function compareAppointmentsAsc(
+  a: CompactAppointmentSummary,
+  b: CompactAppointmentSummary,
+) {
+  return `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`)
+}
+
+function compareAppointmentsDesc(
+  a: CompactAppointmentSummary,
+  b: CompactAppointmentSummary,
+) {
+  return compareAppointmentsAsc(b, a)
+}
+
+function toCompactAppointmentSummary(
+  appointment: AppointmentRecord,
+): CompactAppointmentSummary {
+  return {
+    id: appointment.id,
+    doctorName: appointment.doctor.name,
+    specialtyName: appointment.specialty.name,
+    clinicName: appointment.clinic.name,
+    date: appointment.date,
+    startTime: appointment.startTime,
+    status: appointment.status,
   }
 }
 
@@ -510,5 +576,89 @@ describe('appointments service', () => {
       message: 'Appointment not found',
       statusCode: 404,
     })
+  })
+
+  it('lists upcoming appointments for the authenticated patient in chronological order', async () => {
+    const { service } = makeSut({
+      appointments: [
+        makeAppointment({
+          id: 'upcoming-later-id',
+          date: '2026-06-16',
+          startTime: '09:00',
+          status: 'confirmed',
+        }),
+        makeAppointment({
+          id: 'history-id',
+          date: '2026-06-10',
+          status: 'completed',
+        }),
+        makeAppointment({
+          id: 'other-patient-id',
+          patientId: 'other-patient-id',
+        }),
+        makeAppointment({
+          id: 'upcoming-sooner-id',
+          date: '2026-06-15',
+          startTime: '08:30',
+          status: 'scheduled',
+        }),
+      ],
+    })
+
+    await expect(service.listUpcoming('user-id')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'upcoming-sooner-id',
+        status: 'scheduled',
+      }),
+      expect.objectContaining({
+        id: 'upcoming-later-id',
+        status: 'confirmed',
+      }),
+    ])
+  })
+
+  it('lists appointment history for the authenticated patient from newest to oldest', async () => {
+    const { service } = makeSut({
+      appointments: [
+        makeAppointment({
+          id: 'old-completed-id',
+          date: '2026-04-12',
+          startTime: '10:00',
+          status: 'completed',
+        }),
+        makeAppointment({
+          id: 'upcoming-id',
+          date: '2026-06-15',
+          status: 'scheduled',
+        }),
+        makeAppointment({
+          id: 'new-canceled-id',
+          date: '2026-05-20',
+          startTime: '14:00',
+          status: 'canceled',
+        }),
+        makeAppointment({
+          id: 'no-show-id',
+          date: '2026-05-01',
+          startTime: '08:00',
+          status: 'no_show',
+        }),
+      ],
+    })
+
+    await expect(service.listHistory('user-id')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'new-canceled-id',
+        status: 'canceled',
+      }),
+      expect.objectContaining({
+        id: 'no-show-id',
+        status: 'no_show',
+      }),
+      expect.objectContaining({
+        id: 'old-completed-id',
+        status: 'completed',
+      }),
+    ])
   })
 })
