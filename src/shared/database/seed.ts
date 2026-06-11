@@ -1,5 +1,7 @@
 import { fakerPT_BR as faker } from '@faker-js/faker'
 
+import { hashPassword } from '../../modules/auth/password.js'
+
 import {
   appointments,
   clinicAdmins,
@@ -31,6 +33,7 @@ async function clear() {
 }
 
 async function seed() {
+  const hashedPassword = await hashPassword('password')
   console.log('🌱 Populando especialidades...')
 
   const specialtiesData = [
@@ -52,7 +55,7 @@ async function seed() {
     id: adminId,
     name: 'Admin Agendei',
     email: 'admin@agendei.com',
-    passwordHash: 'dummy-hash',
+    passwordHash: hashedPassword,
     role: 'super_admin',
   })
 
@@ -68,7 +71,7 @@ async function seed() {
       id: clinicUserId,
       name: `${firstName} ${lastName}`,
       email: faker.internet.email({ firstName, lastName }).toLocaleLowerCase(),
-      passwordHash: 'dummy-hash',
+      passwordHash: hashedPassword,
       role: 'admin',
     })
 
@@ -115,7 +118,7 @@ async function seed() {
       id: doctorUserId,
       name: `${gender === 'male' ? 'Dr.' : 'Dra.'} ${firstName} ${lastName}`,
       email: faker.internet.email({ firstName, lastName }).toLocaleLowerCase(),
-      passwordHash: 'dummy-hash',
+      passwordHash: hashedPassword,
       role: 'doctor',
     })
 
@@ -172,7 +175,7 @@ async function seed() {
       id: patientUserId,
       name: `${gender === 'male' ? 'Sr.' : 'Sra.'} ${firstName} ${lastName}`,
       email: faker.internet.email({ firstName, lastName }).toLocaleLowerCase(),
-      passwordHash: 'dummy-hash',
+      passwordHash: hashedPassword,
       role: 'patient',
     })
 
