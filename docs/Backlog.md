@@ -659,13 +659,13 @@ Documentar a API para facilitar integração com o app mobile.
 
 ### Tarefas
 
-- [ ] Criar README da API.
-- [ ] Criar documentação de variáveis de ambiente.
-- [ ] Criar documentação dos endpoints.
-- [ ] Criar exemplos de request/response.
-- [ ] Criar documentação de erros.
-- [ ] Criar instruções para rodar Docker.
-- [ ] Criar instruções para migrations e seed.
+- [x] Criar README da API.
+- [x] Criar documentação de variáveis de ambiente.
+- [x] Criar documentação dos endpoints.
+- [x] Criar exemplos de request/response.
+- [x] Criar documentação de erros.
+- [x] Criar instruções para rodar Docker.
+- [x] Criar instruções para migrations e seed.
 
 ### Critérios de aceite
 
