@@ -10,6 +10,7 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('1d'),
+  BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
 })
 
 export const env = envSchema.parse(process.env)

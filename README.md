@@ -68,6 +68,7 @@ Por padrão, a API fica disponível em `http://localhost:3333`.
 | `DATABASE_URL` | `mysql://agendei:agendei@localhost:3306/agendei` | URL de conexão do MySQL usada pelo Drizzle. |
 | `JWT_SECRET` | `change-me-to-a-secure-secret-with-at-least-32-characters` | Segredo usado para assinar/verificar JWTs. Use valor forte em produção. |
 | `JWT_EXPIRES_IN` | `1d` | Expiração dos tokens JWT. |
+| `BCRYPT_SALT_ROUNDS` | `12` | Custo usado para gerar hashes bcrypt de senhas. |
 
 ## Scripts
 
@@ -84,7 +85,7 @@ npm run db:push      # aplica schema no banco configurado
 npm run db:seed      # limpa e popula dados de desenvolvimento
 ```
 
-Nota: a seed atual popula especialidades, clínicas, médicos, disponibilidades, pacientes e agendamentos para desenvolvimento. Os usuários seedados usam `dummy-hash`, então não são credenciais reais de login pelo fluxo Argon2id.
+Nota: a seed atual popula especialidades, clínicas, médicos, disponibilidades, pacientes e agendamentos para desenvolvimento. Os usuários seedados usam `dummy-hash`, então não são credenciais reais de login pelo fluxo bcrypt.
 
 ## Autenticação
 

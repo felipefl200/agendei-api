@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2025",
-    "lib": ["ES2025"],
+    "target": "ES2024",
+    "lib": ["ES2024"],
 
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
 
     "rootDir": "./src",
     "outDir": "./dist",
@@ -14,15 +14,21 @@
     "exactOptionalPropertyTypes": true,
 
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
     "skipLibCheck": true,
 
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
+    "sourceMap": true,
+    "removeComments": true,
 
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/__tests__/**"
+  ]
 }

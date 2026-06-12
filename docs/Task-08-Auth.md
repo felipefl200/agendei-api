@@ -9,21 +9,21 @@ Concluida em 2026-06-10.
 - Criado o modulo `auth` com as rotas `POST /auth/register`, `POST /auth/login` e `GET /auth/me`.
 - Adicionados schemas Zod v4 para cadastro de paciente e login, incluindo normalizacao de e-mail.
 - Implementado cadastro de paciente com criacao transacional em `users` e `patients`.
-- Implementado hash e verificacao de senha com Argon2id.
+- Implementado hash e verificacao de senha com bcrypt.
 - Implementada emissao de JWT contendo `sub` e `role`.
 - Criados os middlewares `authenticate` e `authorize`.
 - Garantido retorno seguro de usuario sem `passwordHash`.
 - Adicionadas as variaveis `JWT_SECRET` e `JWT_EXPIRES_IN` ao ambiente.
 - Adicionado tratamento de erros Zod no handler HTTP global.
 - Refatorado o caso de uso de auth para depender de ports internos do modulo, removendo dependencias diretas de Drizzle e JWT do service.
-- Movidas as implementacoes concretas de Drizzle, Argon2id e JWT para adapters/composicao do modulo.
+- Movidas as implementacoes concretas de Drizzle, bcrypt e JWT para adapters/composicao do modulo.
 
 ## Testes
 
 - Criado ambiente de testes com Vitest usando `vitest.config.ts`.
 - Adicionados scripts `test` e `test:watch`.
 - Criado `src/tests/setup-env.ts` para variaveis obrigatorias em ambiente de teste.
-- Adicionados testes para schemas, hash Argon2id, middlewares e rotas de auth.
+- Adicionados testes para schemas, hash bcrypt, middlewares e rotas de auth.
 - Adicionado `auth.service.test.ts` com fakes in-memory para cobrir regras do caso de uso sem banco de dados.
 
 ## Criterios de aceite validados

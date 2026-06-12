@@ -7,13 +7,13 @@ import {
   DrizzleAuthUsersRepository,
 } from './auth.repositories.js'
 import { createAuthService } from './auth.service.js'
-import { Argon2PasswordHasher } from './password.js'
+import { BcryptPasswordHasher } from './password.js'
 import { jwtTokenProvider } from './token-provider.js'
 
 export const authService = createAuthService({
   usersRepository: new DrizzleAuthUsersRepository(db),
   transactionManager: new DrizzleAuthTransactionManager(),
-  passwordHasher: new Argon2PasswordHasher(),
+  passwordHasher: new BcryptPasswordHasher(),
   tokenProvider: jwtTokenProvider,
   idGenerator: { randomUUID },
   clock: {

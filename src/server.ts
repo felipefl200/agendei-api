@@ -1,17 +1,16 @@
-import { env } from './config/env.js'
-import { logger } from './shared/logger/logger.js'
-import { buildApp } from './app.js'
+import { env } from './config/env'
+import { buildApp } from './app'
 
-const app = buildApp()
+async function bootstrap() {
+  const app = await buildApp()
 
-try {
   await app.listen({
     host: env.HOST,
     port: env.PORT,
   })
-
-  logger.info(`HTTP server running at http://${env.HOST}:${env.PORT}`)
-} catch (error) {
-  logger.error('Failed to start HTTP server', error)
-  process.exit(1)
 }
+
+void bootstrap().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
