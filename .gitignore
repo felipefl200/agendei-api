@@ -18,6 +18,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Uploads locais
+uploads/
+
 # Cobertura de testes
 coverage/
 .nyc_output/

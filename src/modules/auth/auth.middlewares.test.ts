@@ -4,7 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { AppError } from '../../shared/errors/app-error.js'
 
 import { authorize, createAuthenticateMiddleware } from './auth.middlewares.js'
-import type { TokenProvider } from './auth.ports.js'
+import type {
+  AuthRevokedToken,
+  AuthRevokedTokensRepository,
+  TokenProvider,
+} from './auth.ports.js'
+import { hashAuthToken } from './auth.service.js'
 
 function createTokenProvider(
   role: 'patient' | 'doctor' = 'patient',
@@ -23,6 +28,19 @@ function createInvalidTokenProvider(): TokenProvider {
     sign: vi.fn(),
     verify: vi.fn(() => {
       throw new AppError('Invalid token', 401)
+    }),
+  }
+}
+
+function createRevokedTokensRepository(
+  revokedTokens: AuthRevokedToken[] = [],
+): AuthRevokedTokensRepository {
+  return {
+    create: vi.fn(),
+    findByTokenHash: vi.fn((tokenHash) => {
+      return Promise.resolve(
+        revokedTokens.find((token) => token.tokenHash === tokenHash) ?? null,
+      )
     }),
   }
 }
@@ -58,6 +76,54 @@ describe('auth middlewares', () => {
         role: 'patient',
       },
     })
+  })
+
+  it('rejects tokens revoked by logout', async () => {
+    const app = fastify()
+    const token = 'revoked-token'
+    const tokenProvider = createTokenProvider()
+    const findByTokenHash = vi.fn((tokenHash: string) => {
+      return Promise.resolve(
+        tokenHash === hashAuthToken(token)
+          ? {
+              tokenHash,
+              expiresAt: new Date(Date.now() + 60_000),
+              revokedAt: new Date(),
+            }
+          : null,
+      )
+    })
+    const revokedTokensRepository = createRevokedTokensRepository([
+      {
+        tokenHash: hashAuthToken(token),
+        expiresAt: new Date(Date.now() + 60_000),
+        revokedAt: new Date(),
+      },
+    ])
+    revokedTokensRepository.findByTokenHash = findByTokenHash
+
+    app.get(
+      '/protected',
+      {
+        preHandler: [
+          createAuthenticateMiddleware(tokenProvider, revokedTokensRepository),
+        ],
+      },
+      () => {
+        return { ok: true }
+      },
+    )
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/protected',
+      headers: { authorization: `Bearer ${token}` },
+    })
+
+    await app.close()
+
+    expect(response.statusCode).toBe(401)
+    expect(findByTokenHash).toHaveBeenCalledWith(hashAuthToken(token))
   })
 
   it('rejects invalid tokens with 401', async () => {

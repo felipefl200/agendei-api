@@ -1,11 +1,17 @@
 import { eq } from 'drizzle-orm'
 
 import { db } from '../../shared/database/index.js'
-import { patients, users } from '../../shared/database/schema/index.js'
+import {
+  authRevokedTokens,
+  patients,
+  users,
+} from '../../shared/database/schema/index.js'
 
 import type {
   AuthPatient,
   AuthPatientsRepository,
+  AuthRevokedToken,
+  AuthRevokedTokensRepository,
   AuthTransactionContext,
   AuthTransactionManager,
   AuthUser,
@@ -83,6 +89,34 @@ export class DrizzleAuthPatientsRepository implements AuthPatientsRepository {
     }
 
     return patient
+  }
+}
+
+export class DrizzleAuthRevokedTokensRepository
+  implements AuthRevokedTokensRepository
+{
+  constructor(private readonly client: AuthDatabaseClient) {}
+
+  async create(input: AuthRevokedToken): Promise<void> {
+    await this.client
+      .insert(authRevokedTokens)
+      .values(input)
+      .onDuplicateKeyUpdate({
+        set: {
+          expiresAt: input.expiresAt,
+          revokedAt: input.revokedAt,
+        },
+      })
+  }
+
+  async findByTokenHash(tokenHash: string): Promise<AuthRevokedToken | null> {
+    const [revokedToken] = await this.client
+      .select()
+      .from(authRevokedTokens)
+      .where(eq(authRevokedTokens.tokenHash, tokenHash))
+      .limit(1)
+
+    return revokedToken ?? null
   }
 }
 

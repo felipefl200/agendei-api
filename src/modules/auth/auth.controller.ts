@@ -21,6 +21,19 @@ export async function loginController(request: FastifyRequest) {
   return await authService.login(input)
 }
 
+export async function logoutController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  if (!request.authToken) {
+    throw new AppError('Unauthenticated', 401)
+  }
+
+  await authService.logout(request.authToken)
+
+  return reply.code(204).send()
+}
+
 export async function meController(request: FastifyRequest) {
   if (!request.user) {
     throw new AppError('Unauthenticated', 401)

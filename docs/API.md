@@ -132,6 +132,18 @@ Erros comuns:
 - `401` para credenciais inválidas.
 - `401` para usuário inativo.
 
+### POST /auth/logout
+
+Proteção: qualquer usuário autenticado.
+
+Invalida o token Bearer atual na API até a expiração original do JWT.
+
+Resposta `204`: sem body.
+
+Erros comuns:
+
+- `401` quando o token está ausente, inválido ou já invalidado.
+
 ### GET /auth/me
 
 Proteção: qualquer usuário autenticado.
@@ -220,6 +232,51 @@ Resposta `200`:
   }
 }
 ```
+
+## Profile
+
+### PUT /profile/avatar
+
+Protecao: qualquer usuario autenticado.
+
+Atualiza o avatar do perfil associado ao usuario autenticado. Pacientes atualizam
+`patients.avatar_url`; medicos atualizam `doctors.avatar_url`.
+
+Request:
+
+```http
+Content-Type: multipart/form-data
+```
+
+Campo obrigatorio:
+
+| Campo | Tipo | Regras |
+| --- | --- | --- |
+| `avatar` | arquivo | `image/jpeg`, `image/png` ou `image/webp`; tamanho maximo configurado por `AVATAR_MAX_BYTES`. |
+
+Resposta `200`:
+
+```json
+{
+  "profile": {
+    "type": "patient",
+    "avatarUrl": "http://localhost:3333/uploads/avatars/patient-123e4567-e89b-12d3-a456-426614174001-file-id.webp"
+  }
+}
+```
+
+Em producao, quando `PUBLIC_BASE_URL` nao for definido explicitamente, a URL
+publica usa:
+
+```txt
+https://board.linenetwork.com.br/uploads/avatars/...
+```
+
+Erros comuns:
+
+- `400` quando o arquivo nao e enviado, o campo nao se chama `avatar`, o tipo nao e permitido ou o tamanho excede o limite.
+- `401` quando o token esta ausente ou invalido.
+- `404` quando o usuario autenticado nao possui perfil com avatar suportado.
 
 ## Specialties
 

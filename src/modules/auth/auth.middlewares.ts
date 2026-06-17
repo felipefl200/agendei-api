@@ -4,15 +4,22 @@ import type {
   HookHandlerDoneFunction,
 } from 'fastify'
 
+import { db } from '../../shared/database/index.js'
 import { AppError } from '../../shared/errors/app-error.js'
 
-import type { TokenProvider } from './auth.ports.js'
+import type {
+  AuthRevokedTokensRepository,
+  TokenProvider,
+} from './auth.ports.js'
+import { DrizzleAuthRevokedTokensRepository } from './auth.repositories.js'
+import { hashAuthToken } from './auth.service.js'
 import type { UserRole } from './auth.types.js'
 import { jwtTokenProvider } from './token-provider.js'
 
-function authenticateRequest(
+async function authenticateRequest(
   request: FastifyRequest,
   tokenProvider: TokenProvider,
+  revokedTokensRepository?: AuthRevokedTokensRepository,
 ) {
   const authorization = request.headers.authorization
 
@@ -29,6 +36,17 @@ function authenticateRequest(
   try {
     const payload = tokenProvider.verify(token)
 
+    if (revokedTokensRepository) {
+      const revokedToken = await revokedTokensRepository.findByTokenHash(
+        hashAuthToken(token),
+      )
+
+      if (revokedToken && revokedToken.expiresAt > new Date()) {
+        throw new AppError('Invalid token', 401)
+      }
+    }
+
+    request.authToken = token
     request.user = {
       id: payload.sub,
       role: payload.role,
@@ -42,22 +60,24 @@ function authenticateRequest(
   }
 }
 
-export function createAuthenticateMiddleware(tokenProvider: TokenProvider) {
-  return function authenticate(
+export function createAuthenticateMiddleware(
+  tokenProvider: TokenProvider,
+  revokedTokensRepository?: AuthRevokedTokensRepository,
+) {
+  return async function authenticate(
     request: FastifyRequest,
     _reply: FastifyReply,
-    done: HookHandlerDoneFunction,
   ) {
-    try {
-      authenticateRequest(request, tokenProvider)
-      done()
-    } catch (error) {
-      done(error as Error)
-    }
+    await authenticateRequest(request, tokenProvider, revokedTokensRepository)
   }
 }
 
-export const authenticate = createAuthenticateMiddleware(jwtTokenProvider)
+export const authenticate = createAuthenticateMiddleware(
+  jwtTokenProvider,
+  process.env.NODE_ENV === 'test'
+    ? undefined
+    : new DrizzleAuthRevokedTokensRepository(db),
+)
 
 export function authorize(allowedRoles: UserRole[]) {
   return function authorizeMiddleware(

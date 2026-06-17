@@ -8,6 +8,13 @@
       "when": 1781094472614,
       "tag": "0000_lumpy_agent_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1781700000000,
+      "tag": "0001_auth_revoked_tokens",
+      "breakpoints": true
     }
   ]
 }

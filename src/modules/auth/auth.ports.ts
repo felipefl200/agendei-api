@@ -25,6 +25,12 @@ export type AuthPatient = {
   updatedAt: Date
 }
 
+export type AuthRevokedToken = {
+  tokenHash: string
+  expiresAt: Date
+  revokedAt: Date
+}
+
 export type CreateAuthUserInput = {
   id: string
   name: string
@@ -50,6 +56,11 @@ export type AuthUsersRepository = {
 
 export type AuthPatientsRepository = {
   create(input: CreateAuthPatientInput): Promise<AuthPatient>
+}
+
+export type AuthRevokedTokensRepository = {
+  create(input: AuthRevokedToken): Promise<void>
+  findByTokenHash(tokenHash: string): Promise<AuthRevokedToken | null>
 }
 
 export type AuthTransactionContext = {

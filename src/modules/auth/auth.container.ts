@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { db } from '../../shared/database/index.js'
 
 import {
+  DrizzleAuthRevokedTokensRepository,
   DrizzleAuthTransactionManager,
   DrizzleAuthUsersRepository,
 } from './auth.repositories.js'
@@ -12,6 +13,7 @@ import { jwtTokenProvider } from './token-provider.js'
 
 export const authService = createAuthService({
   usersRepository: new DrizzleAuthUsersRepository(db),
+  revokedTokensRepository: new DrizzleAuthRevokedTokensRepository(db),
   transactionManager: new DrizzleAuthTransactionManager(),
   passwordHasher: new Argon2PasswordHasher(),
   tokenProvider: jwtTokenProvider,

@@ -8,4 +8,5 @@ export type AuthenticatedUser = {
 export type JwtPayload = {
   sub: string
   role: UserRole
+  exp?: number
 }

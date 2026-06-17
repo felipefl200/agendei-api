@@ -9,6 +9,7 @@ vi.mock(import('./auth.container.js'), () => ({
   authService: {
     getAuthenticatedUser: vi.fn(),
     login: vi.fn(),
+    logout: vi.fn(),
     registerPatient: vi.fn(),
   },
 }))
@@ -139,6 +140,26 @@ describe('auth routes', () => {
     expect(response.statusCode).toBe(200)
     expect(authService.getAuthenticatedUser).toHaveBeenCalledWith(safeUser.id)
     expect(JSON.stringify(response.json())).not.toContain('passwordHash')
+  })
+
+  it('invalidates the current session on logout', async () => {
+    vi.mocked(authService.logout).mockResolvedValue()
+    const app = buildApp()
+    const token = jwt.sign(
+      { sub: safeUser.id, role: safeUser.role },
+      process.env.JWT_SECRET!,
+    )
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/logout',
+      headers: { authorization: `Bearer ${token}` },
+    })
+
+    await app.close()
+
+    expect(response.statusCode).toBe(204)
+    expect(authService.logout).toHaveBeenCalledWith(token)
   })
 
   it('returns 401 for invalid tokens', async () => {

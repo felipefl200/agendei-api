@@ -1,4 +1,5 @@
 export * from './appointments.js'
+export * from './auth.js'
 export * from './clinics.js'
 export * from './doctors.js'
 export * from './notifications.js'

@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type {
   AuthPatient,
   AuthPatientsRepository,
+  AuthRevokedToken,
+  AuthRevokedTokensRepository,
   AuthTransactionContext,
   AuthTransactionManager,
   AuthUser,
@@ -12,7 +14,7 @@ import type {
   PasswordHasher,
   TokenProvider,
 } from './auth.ports.js'
-import { createAuthService } from './auth.service.js'
+import { createAuthService, hashAuthToken } from './auth.service.js'
 
 const fixedNow = new Date('2026-06-10T12:00:00.000Z')
 
@@ -94,6 +96,20 @@ class InMemoryPatientsRepository implements AuthPatientsRepository {
   }
 }
 
+class InMemoryRevokedTokensRepository implements AuthRevokedTokensRepository {
+  constructor(private readonly revokedTokens: Map<string, AuthRevokedToken>) {}
+
+  create(input: AuthRevokedToken): Promise<void> {
+    this.revokedTokens.set(input.tokenHash, input)
+
+    return Promise.resolve()
+  }
+
+  findByTokenHash(tokenHash: string): Promise<AuthRevokedToken | null> {
+    return Promise.resolve(this.revokedTokens.get(tokenHash) ?? null)
+  }
+}
+
 class InMemoryTransactionManager implements AuthTransactionManager {
   public readonly runSpy = vi.fn()
 
@@ -161,7 +177,11 @@ function makeSut(
     options.users?.map((user) => [user.id, user] as const),
   )
   const patients = new Map<string, AuthPatient>()
+  const revokedTokens = new Map<string, AuthRevokedToken>()
   const usersRepository = new InMemoryUsersRepository(users)
+  const revokedTokensRepository = new InMemoryRevokedTokensRepository(
+    revokedTokens,
+  )
   const transactionManager = new InMemoryTransactionManager(
     users,
     patients,
@@ -178,7 +198,11 @@ function makeSut(
       (payload: { sub: string; role: string }) =>
         `token:${payload.sub}:${payload.role}`,
     ),
-    verify: vi.fn(),
+    verify: vi.fn(() => ({
+      exp: Math.floor(new Date('2026-06-10T13:00:00.000Z').getTime() / 1000),
+      role: 'patient' as const,
+      sub: 'existing-user-id',
+    })),
   }
   const ids = ['new-user-id', 'new-patient-id']
   const idGenerator: IdGenerator = {
@@ -191,6 +215,7 @@ function makeSut(
   return {
     service: createAuthService({
       usersRepository,
+      revokedTokensRepository,
       transactionManager,
       passwordHasher,
       tokenProvider,
@@ -199,6 +224,7 @@ function makeSut(
     }),
     users,
     patients,
+    revokedTokens,
     transactionManager,
     passwordHasher,
     tokenProvider,
@@ -376,5 +402,24 @@ describe('auth service', () => {
       message: 'Invalid token',
       statusCode: 401,
     })
+  })
+
+  it('revokes the current token until its expiration on logout', async () => {
+    const { service, revokedTokens, tokenProvider, clock } = makeSut()
+    const token = 'jwt-token'
+
+    await service.logout(token)
+
+    const revokedToken = revokedTokens.get(hashAuthToken(token))
+
+    expect(revokedToken).toEqual({
+      tokenHash: hashAuthToken(token),
+      expiresAt: new Date('2026-06-10T13:00:00.000Z'),
+      revokedAt: fixedNow,
+    })
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(tokenProvider.verify).toHaveBeenCalledWith(token)
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(clock.now).toHaveBeenCalled()
   })
 })

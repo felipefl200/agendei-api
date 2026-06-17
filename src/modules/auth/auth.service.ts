@@ -1,7 +1,10 @@
+import { createHash } from 'node:crypto'
+
 import { AppError } from '../../shared/errors/app-error.js'
 
 import type {
   AuthPatient,
+  AuthRevokedTokensRepository,
   AuthTransactionManager,
   AuthUser,
   AuthUsersRepository,
@@ -15,6 +18,7 @@ import type { LoginInput, RegisterPatientInput } from './auth.schemas.js'
 
 type AuthServiceDeps = {
   usersRepository: AuthUsersRepository
+  revokedTokensRepository: AuthRevokedTokensRepository
   transactionManager: AuthTransactionManager
   passwordHasher: PasswordHasher
   tokenProvider: TokenProvider
@@ -36,6 +40,10 @@ function sanitizeUser({
   ...user
 }: AuthUser): SafeAuthUser {
   return user
+}
+
+export function hashAuthToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex')
 }
 
 export function createAuthService(deps: AuthServiceDeps) {
@@ -129,9 +137,21 @@ export function createAuthService(deps: AuthServiceDeps) {
     return sanitizeUser(user)
   }
 
+  async function logout(token: string): Promise<void> {
+    const payload = deps.tokenProvider.verify(token)
+    const now = deps.clock.now()
+
+    await deps.revokedTokensRepository.create({
+      tokenHash: hashAuthToken(token),
+      expiresAt: payload.exp ? new Date(payload.exp * 1000) : now,
+      revokedAt: now,
+    })
+  }
+
   return {
     getAuthenticatedUser,
     login,
+    logout,
     registerPatient,
   }
 }
