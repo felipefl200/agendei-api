@@ -26,4 +26,16 @@ describe('auth schemas', () => {
       password: 'strong-password-123',
     })
   })
+
+  it('rejects passwords above bcrypt byte limit', () => {
+    const input = {
+      name: 'Maria Silva',
+      email: 'maria@example.com',
+      password: 'á'.repeat(37),
+    }
+
+    expect(() => registerPatientSchema.parse(input)).toThrow(
+      'A senha não pode ultrapassar 72 bytes.',
+    )
+  })
 })
